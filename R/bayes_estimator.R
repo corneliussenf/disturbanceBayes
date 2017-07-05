@@ -19,6 +19,10 @@ bayes_estimator <- function(formula,
 
   invlogit <- plogis  # function(x) 1/(1 + exp(-x))
 
+  shift_draws <- function(draws) {
+    sweep(draws[, -1], MARGIN = 1, STATS = draws[, 1], FUN = "+")
+  }
+
   summary_stats <- function(posterior, f = family) {
     if (f == "binomial") {
       x <- invlogit(posterior)
@@ -39,10 +43,6 @@ bayes_estimator <- function(formula,
     fit_partialpool <- rstanarm::stan_glmer(formula,
                                             data = data,
                                             family = binomial("logit"))
-
-    shift_draws <- function(draws) {
-      sweep(draws[, -1], MARGIN = 1, STATS = draws[, 1], FUN = "+")
-    }
 
     alphas <- shift_draws(as.matrix(fit_partialpool))
     partialpool <- summary_stats(alphas)
