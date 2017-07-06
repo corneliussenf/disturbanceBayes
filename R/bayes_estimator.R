@@ -1,4 +1,4 @@
-#' Function for estimating disturbance rates from TimeSync samples using Bayesian hierachical modeling
+#' Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling
 #'
 #' @param formula A model formula.
 #' @param data A data.frame containing the data.
