@@ -4,15 +4,12 @@
 \alias{bayes_estimator}
 \title{Add together two numbers}
 \usage{
-bayes_estimator(formula, data, prior, family, summary_probs = c(0.1, 0.5,
-  0.9))
+bayes_estimator(formula, data, family, summary_probs = c(0.1, 0.5, 0.9))
 }
 \arguments{
 \item{formula}{A model formula.}
 
 \item{data}{A data.frame containing the data.}
-
-\item{prior}{Prior used ro calculating the joint posterior. Leave blank for weakly-informative priors.}
 
 \item{family}{The model family. Currently implemented are 'binomial' and 'poisson'.}
 

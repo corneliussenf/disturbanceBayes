@@ -46,7 +46,7 @@ bayes_estimator <- function(formula,
 
     fit_partialpool <- rstanarm::stan_glmer(formula,
                                             data = data,
-                                            family = binomial("logit"))
+                                            family = stats::binomial("logit"))
 
     alphas <- shift_draws(as.matrix(fit_partialpool))
     partialpool <- summary_stats(alphas)
@@ -62,7 +62,7 @@ bayes_estimator <- function(formula,
 
     } else if (length(vars.predictor) == 2) {
 
-      if (length(attributes(terms(formula))$term.labels) == 2) {
+      if (length(attributes(stats::terms(formula))$term.labels) == 2) {
 
         partialpool <- partialpool[-nrow(partialpool), ]
         partialpool1 <- partialpool[grep(vars.predictor[1], substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))), ]
@@ -134,7 +134,7 @@ bayes_estimator <- function(formula,
 
     fit_partialpool <- rstanarm::stan_glmer(formula,
                                             data = data,
-                                            family = poisson("log"))
+                                            family = stats::poisson("log"))
 
     alphas <- shift_draws(as.matrix(fit_partialpool))
     alphas <- alphas[,-ncol(alphas)]
@@ -156,15 +156,15 @@ bayes_estimator <- function(formula,
     alphas <- dplyr::left_join(alphas, data, by = vars.predictor)
     alphas$dr <- exp(alphas$value) / alphas$forest
     if (length(vars.predictor) == 1) {
-      partialpool <- summarize(group_by_(alphas, vars.predictor[1]),
-                               lower = quantile(dr, summary_probs[1]),
-                               estimate = quantile(dr, summary_probs[2]),
-                               upper = quantile(dr, summary_probs[3]))
+      partialpool <- dplyr::summarize(dplyr::group_by_(alphas, vars.predictor[1]),
+                               lower = stats::quantile(dr, summary_probs[1]),
+                               estimate = stats::quantile(dr, summary_probs[2]),
+                               upper = stats::quantile(dr, summary_probs[3]))
     } else if (length(vars.predictor) == 2) {
-      partialpool <- summarize(group_by_(alphas, vars.predictor[1], vars.predictor[2]),
-                               lower = quantile(dr, summary_probs[1]),
-                               estimate = quantile(dr, summary_probs[2]),
-                               upper = quantile(dr, summary_probs[3]))
+      partialpool <- dplyr::summarize(dplyr::group_by_(alphas, vars.predictor[1], vars.predictor[2]),
+                               lower = stats::quantile(dr, summary_probs[1]),
+                               estimate = stats::quantile(dr, summary_probs[2]),
+                               upper = stats::quantile(dr, summary_probs[3]))
     }
 
     partialpool_mean <- shift_draws(as.matrix(fit_partialpool))
