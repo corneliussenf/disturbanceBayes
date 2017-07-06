@@ -2,7 +2,7 @@
 % Please edit documentation in R/bayes_estimator.R
 \name{bayes_estimator}
 \alias{bayes_estimator}
-\title{Function for estimating disturbance rates from TimeSync samples using Bayesian hierachical modeling}
+\title{Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling}
 \usage{
 bayes_estimator(formula, data, family, summary_probs = c(0.1, 0.5, 0.9))
 }
@@ -19,5 +19,5 @@ bayes_estimator(formula, data, family, summary_probs = c(0.1, 0.5, 0.9))
 A sumary of the joint posterior distribution.
 }
 \description{
-Function for estimating disturbance rates from TimeSync samples using Bayesian hierachical modeling
+Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling
 }

@@ -14,6 +14,7 @@ bayes_estimator <- function(formula,
 
   # Test
   #formula <- cbind(disturbance, forest - disturbance) ~ (1 | year : stratum)
+  #formula <- cbind(disturbance, forest - disturbance) ~ (1 | year : stratum)
   #formula <- disturbance ~ (1 | year : stratum)
   #formula <- cbind(disturbance, forest - disturbance) ~ (1 | year) + (1 | stratum)
   #formula <- cbind(disturbance, forest - disturbance) ~ (1 | stratum / year)
