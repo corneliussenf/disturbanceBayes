@@ -2,22 +2,15 @@
 % Please edit documentation in R/compare_models.R
 \name{compare_models}
 \alias{compare_models}
-\title{Add together two numbers}
+\title{Funktion for comparing models}
 \usage{
 compare_models(newdata, models)
 }
 \arguments{
-\item{formula}{A model formula.}
+\item{newdata}{Newdata.}
 
-\item{data}{A data.frame containing the data.}
-
-\item{family}{The model family. Currently implemented are 'binomial' and 'poisson'.}
-
-\item{summary_probs}{Vector containing the quantiles for summarizing the joint posterior distribution.}
-}
-\value{
-A sumary of the joint posterior distribution.
+\item{models}{Models.}
 }
 \description{
-Add together two numbers
+Funktion for comparing models
 }

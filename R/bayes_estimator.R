@@ -1,4 +1,4 @@
-#' Add together two numbers
+#' Function for estimating disturbance rates from TimeSync samples using Bayesian hierachical modeling
 #'
 #' @param formula A model formula.
 #' @param data A data.frame containing the data.
