@@ -15,7 +15,11 @@ bayes_estimator <- function(formula,
   # Test
   #formula <- cbind(disturbance, forest - disturbance) ~ (1 | year : stratum)
   #formula <- disturbance ~ (1 | year : stratum)
+  #formula <- cbind(disturbance, forest - disturbance) ~ (1 | year) + (1 | stratum)
+  #formula <- cbind(disturbance, forest - disturbance) ~ (1 | stratum / year)
+  #formula <- cbind(disturbance, forest - disturbance) ~ (1 | year / stratum)
   #data <- sample_dat2
+  #family <- "binomial"
 
   invlogit <- plogis  # function(x) 1/(1 + exp(-x))
 
@@ -48,20 +52,75 @@ bayes_estimator <- function(formula,
     partialpool <- summary_stats(alphas)
     partialpool <- as.data.frame(partialpool[-nrow(partialpool),])
     colnames(partialpool) <- c("lower", "estimate", "upper")
+
     if (length(vars.predictor) == 1) {
+
       random1 <- substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))
       random1_name <- unique(unlist(lapply(strsplit(random1, ":"), function(x) x[1])))
       partialpool[,random1_name] <- unlist(lapply(strsplit(random1, ":"), function(x) x[2]))
-    } else if (length(vars.predictor) == 2) {
-      random1 <- substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))
-      random1_name <- unique(unlist(lapply(strsplit(random1, ":"), function(x) x[1])))
-      partialpool[,random1_name] <- unlist(lapply(strsplit(random1, ":"), function(x) x[3]))
+      rownames(partialpool) <- NULL
 
-      random2 <- substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))
-      random2_name <- unique(unlist(lapply(strsplit(random2, ":"), function(x) x[2])))
-      partialpool[,random2_name] <- unlist(lapply(strsplit(random2, ":"), function(x) x[4]))
+    } else if (length(vars.predictor) == 2) {
+
+      if (length(attributes(terms(formula))$term.labels) == 2) {
+
+        partialpool <- partialpool[-nrow(partialpool), ]
+        partialpool1 <- partialpool[grep(vars.predictor[1], substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))), ]
+        partialpool2 <- partialpool[grep(vars.predictor[2], substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))), ]
+
+        random1 <- substring(rownames(partialpool1), 15, (nchar(rownames(partialpool1)) - 1))
+        random1_name <- unique(unlist(lapply(strsplit(random1, ":"), function(x) x[1])))
+        partialpool1[,random1_name] <- unlist(lapply(strsplit(random1, ":"), function(x) x[2]))
+        rownames(partialpool1) <- NULL
+
+        random2 <- substring(rownames(partialpool2), 15, (nchar(rownames(partialpool2)) - 1))
+        random2_name <- unique(unlist(lapply(strsplit(random2, ":"), function(x) x[1])))
+        partialpool2[,random2_name] <- unlist(lapply(strsplit(random2, ":"), function(x) x[2]))
+        rownames(partialpool2) <- NULL
+
+        partialpool <- list()
+        partialpool[[random1_name]] <- partialpool1
+        partialpool[[random2_name]] <- partialpool2
+
+      } else if (grepl("/", attributes(terms(formula))$term.labels, fixed = TRUE)) {
+
+        partialpool <- partialpool[-nrow(partialpool), ]
+        partialpool1 <- partialpool[grep(vars.predictor[2], substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))), ]
+        partialpool2 <- partialpool[-grep(vars.predictor[2], substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))), ]
+
+        random1a <- substring(rownames(partialpool1), 15, (nchar(rownames(partialpool1)) - 1))
+        random1a_name <- unique(unlist(lapply(strsplit(random1a, ":"), function(x) x[1])))
+        partialpool1[,random1a_name] <- unlist(lapply(strsplit(random1a, ":"), function(x) x[3]))
+
+        random2a <- substring(rownames(partialpool1), 15, (nchar(rownames(partialpool1)) - 1))
+        random2a_name <- unique(unlist(lapply(strsplit(random2a, ":"), function(x) x[2])))
+        partialpool1[,random2a_name] <- unlist(lapply(strsplit(random2a, ":"), function(x) x[4]))
+
+        rownames(partialpool1) <- NULL
+
+        random2 <- substring(rownames(partialpool2), 15, (nchar(rownames(partialpool2)) - 1))
+        random2_name <- unique(unlist(lapply(strsplit(random2, ":"), function(x) x[1])))
+        partialpool2[,random2_name] <- unlist(lapply(strsplit(random2, ":"), function(x) x[2]))
+        rownames(partialpool2) <- NULL
+
+        partialpool <- list()
+        partialpool[[paste(vars.predictor, collapse = ":")]] <- partialpool1
+        partialpool[[random2_name]] <- partialpool2
+
+      } else {
+
+        random1 <- substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))
+        random1_name <- unique(unlist(lapply(strsplit(random1, ":"), function(x) x[1])))
+        partialpool[,random1_name] <- unlist(lapply(strsplit(random1, ":"), function(x) x[3]))
+
+        random2 <- substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))
+        random2_name <- unique(unlist(lapply(strsplit(random2, ":"), function(x) x[2])))
+        partialpool[,random2_name] <- unlist(lapply(strsplit(random2, ":"), function(x) x[4]))
+
+        rownames(partialpool) <- NULL
+      }
+
     }
-    rownames(partialpool) <- NULL
 
     partialpool_mean <- as.data.frame(t(quantile(invlogit(as.matrix(fit_partialpool)[,1]), summary_probs)))
     colnames(partialpool_mean) <- c("lower", "estimate", "upper")
@@ -114,6 +173,6 @@ bayes_estimator <- function(formula,
 
   }
 
-  return(list(random = partialpool, fixed = partialpool_mean))
+  return(list(random = partialpool, fixed = partialpool_mean, model = fit_partialpool))
 
 }
