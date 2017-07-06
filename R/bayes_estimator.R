@@ -139,6 +139,7 @@ bayes_estimator <- function(formula,
     alphas <- shift_draws(as.matrix(fit_partialpool))
     alphas <- alphas[,-ncol(alphas)]
     alphas <- data.table::melt(as.data.frame(alphas))
+
     if (length(vars.predictor) == 1) {
       random1 <- substring(as.character(alphas$variable), 15, (nchar(as.character(alphas$variable)) - 1))
       random1_name <- unique(unlist(lapply(strsplit(random1, ":"), function(x) x[1])))
@@ -152,19 +153,25 @@ bayes_estimator <- function(formula,
       random2_name <- unique(unlist(lapply(strsplit(random2, ":"), function(x) x[2])))
       alphas[,random2_name] <- unlist(lapply(strsplit(random2, ":"), function(x) x[4]))
     }
+
     alphas$variable <- gsub("[^0-9]", "", alphas$variable)
     alphas <- dplyr::left_join(alphas, data, by = vars.predictor)
     alphas$dr <- exp(alphas$value) / alphas$forest
+
     if (length(vars.predictor) == 1) {
+
       partialpool <- dplyr::summarize(dplyr::group_by_(alphas, vars.predictor[1]),
                                lower = stats::quantile(dr, summary_probs[1]),
                                estimate = stats::quantile(dr, summary_probs[2]),
                                upper = stats::quantile(dr, summary_probs[3]))
+
     } else if (length(vars.predictor) == 2) {
+
       partialpool <- dplyr::summarize(dplyr::group_by_(alphas, vars.predictor[1], vars.predictor[2]),
                                lower = stats::quantile(dr, summary_probs[1]),
                                estimate = stats::quantile(dr, summary_probs[2]),
                                upper = stats::quantile(dr, summary_probs[3]))
+
     }
 
     partialpool_mean <- shift_draws(as.matrix(fit_partialpool))
