@@ -6,8 +6,28 @@
 #' @param change.agents Change agents to be considered. Standard is 'Harvest', 'Wind', and 'Decline'.
 #' @return A sumary of the disturbances per year (and agents/grouping variables).
 #' @export
-#'
-disturbance_summary <- function(dat, by.agent = FALSE, grouping.vars = NULL, change.agents = c("Harvest", "Wind", "Decline")) {
+
+disturbance_summary <- function(dat,
+                                by.agent = FALSE,
+                                grouping.vars = NULL,
+                                sub.agents = FALSE,
+                                change.agents = c("Harvest", "Wind", "Decline", "Hydrology", "Debris", "Other"),
+                                interpreter = NULL) {
+
+  if (!is.null(interpreter)) dat <- dat[dat$interpreter == interpreter, ]
+
+  if (sub.agents) {
+    dat$change_process <- as.character(dat$change_process)
+    agent_new <- unlist(lapply(strsplit(as.character(dat$change_process_notes), "|", fixed = TRUE), function(x) x[1]))
+    dat[!is.na(agent_new) & dat$change_process == "Harvest", "change_process"] <- agent_new[!is.na(agent_new) & dat$change_process == "Harvest"]
+
+    still_harvest <- dat[dat$change_process == "Harvest", "plotid"]
+    print(paste0("Warning: Detected 'harvests' without sub-agent, which were automatically set to 'clearcut': ", paste(still_harvest, collapse = ", ")))
+    dat[dat$change_process == "Harvest", "change_process"] <- "clearcut"
+
+    change.agents <- c(change.agents, unique(agent_new))
+    change.agents <- change.agents[!is.na(change.agents)]
+  }
 
   dat_processed <- dplyr::mutate(dat, agent = lead(change_process))
   dat_processed <- dplyr::filter(dat_processed, agent %in% change.agents & dominant_landuse == "Forest")
@@ -29,11 +49,12 @@ disturbance_summary <- function(dat, by.agent = FALSE, grouping.vars = NULL, cha
     }
   }
 
-
   forest <- sum(dplyr::summarize(dplyr::group_by(dat, plotid), forest = sum(dominant_landuse == "Forest") > 0)$forest)
   dat_processed <- dplyr::mutate(dat_processed, forest = forest, year = image_year + 1)
   dat_processed <- dplyr::ungroup(dat_processed)
   dat_processed <- dplyr::select(dat_processed, -image_year)
+  dat_processed$agent <- tolower(dat_processed$agent)
+  dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
 
   return(dat_processed)
 }
