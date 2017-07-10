@@ -53,8 +53,8 @@ disturbance_summary <- function(dat,
   dat_processed <- dplyr::mutate(dat_processed, forest = forest, year = image_year + 1)
   dat_processed <- dplyr::ungroup(dat_processed)
   dat_processed <- dplyr::select(dat_processed, -image_year)
-  dat_processed$agent <- tolower(dat_processed$agent)
-  dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
+  if(by.agent) dat_processed$agent <- tolower(dat_processed$agent)
+  if(by.agent) dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
 
   return(dat_processed)
 }
