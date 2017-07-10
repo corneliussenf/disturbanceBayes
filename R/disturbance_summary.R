@@ -51,7 +51,7 @@ disturbance_summary <- function(dat,
   if(by.agent == FALSE) {
     dat_processed <- dplyr::summarize(dplyr::group_by(dat_processed, year),
                                       disturbance = sum(disturbance),
-                                      forest = unique(disturbance))
+                                      forest = unique(forest))
   }
 
   return(dat_processed)
