@@ -34,27 +34,25 @@ disturbance_summary <- function(dat,
   dat_processed <- dplyr::select(dat_processed, -change_process)
 
   if (is.null(grouping.vars)) {
-    if (by.agent) {
-      dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, "image_year", "agent"), disturbance = length(agent))
-    } else {
-      dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, "image_year"), disturbance = length(agent))
-    }
+    dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, "image_year", "agent"), disturbance = length(agent))
   } else {
     dat_processed <- dplyr::left_join(dat_processed, grouping.vars, by = "plotid")
     grouping.vars.names <- names(grouping.vars)[-which(names(grouping.vars) == "plotid")]
-    if (by.agent) {
-      dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, .dots = c("image_year", lapply(grouping.vars.names, function(x) x ), "agent")), disturbance = length(agent))
-    } else {
-      dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, .dots = c("image_year", lapply(grouping.vars.names, function(x) x ))), disturbance = length(agent))
-    }
+    dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, .dots = c("image_year", lapply(grouping.vars.names, function(x) x ), "agent")), disturbance = length(agent))
   }
 
   forest <- sum(dplyr::summarize(dplyr::group_by(dat, plotid), forest = sum(dominant_landuse == "Forest") > 0)$forest)
   dat_processed <- dplyr::mutate(dat_processed, forest = forest, year = image_year + 1)
   dat_processed <- dplyr::ungroup(dat_processed)
   dat_processed <- dplyr::select(dat_processed, -image_year)
-  if(by.agent) dat_processed$agent <- tolower(dat_processed$agent)
-  if(by.agent) dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
+  dat_processed$agent <- tolower(dat_processed$agent)
+  dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
+
+  if(by.agent == FALSE) {
+    dat_processed <- dplyr::summarize(dplyr::group_by(dat_processed, year),
+                                      disturbance = sum(disturbance),
+                                      forest = unique(disturbance))
+  }
 
   return(dat_processed)
 }
