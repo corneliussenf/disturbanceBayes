@@ -8,6 +8,7 @@
 #' @export
 
 disturbance_summary <- function(dat,
+                                by.year = TRUE,
                                 by.agent = FALSE,
                                 grouping.vars = NULL,
                                 sub.agents = FALSE,
@@ -35,21 +36,36 @@ disturbance_summary <- function(dat,
 
   if (is.null(grouping.vars)) {
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, "image_year", "agent"), disturbance = length(agent))
+    forest <- sum(dplyr::summarize(dplyr::group_by(dat, plotid),
+                                   forest = sum(dominant_landuse == "Forest") > 0)$forest)
+    dat_processed <- dplyr::mutate(dat_processed, forest = forest)
   } else {
     dat_processed <- dplyr::left_join(dat_processed, grouping.vars, by = "plotid")
     grouping.vars.names <- names(grouping.vars)[-which(names(grouping.vars) == "plotid")]
+    forest <- dplyr::summarize(dplyr::group_by_(dat_processed, .dots = c("plotid", lapply(grouping.vars.names, function(x) x ))),
+                                   forest = sum(dominant_landuse == "Forest") > 0)
+    forest <- dplyr::summarize(dplyr::group_by_(forest, .dots = c(lapply(grouping.vars.names, function(x) x ))),
+                               forest = sum(forest))
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, .dots = c("image_year", lapply(grouping.vars.names, function(x) x ), "agent")), disturbance = length(agent))
+    dat_processed <- left_join(dat_processed, forest, by = grouping.vars.names)
   }
 
-  forest <- sum(dplyr::summarize(dplyr::group_by(dat, plotid), forest = sum(dominant_landuse == "Forest") > 0)$forest)
-  dat_processed <- dplyr::mutate(dat_processed, forest = forest, year = image_year + 1)
+  dat_processed <- dplyr::mutate(dat_processed, year = image_year + 1)
   dat_processed <- dplyr::ungroup(dat_processed)
   dat_processed <- dplyr::select(dat_processed, -image_year)
   dat_processed$agent <- tolower(dat_processed$agent)
   dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
 
-  if(by.agent == FALSE) {
-    dat_processed <- dplyr::summarize(dplyr::group_by(dat_processed, year),
+  if (by.agent == FALSE) {
+    g <- names(dat_processed)[-which(names(dat_processed) %in% c("forest", "disturbance", "agent"))]
+    dat_processed <- dplyr::summarize(dplyr::group_by_(dat_processed, .dots = lapply(g, function(x) x)),
+                                      disturbance = sum(disturbance),
+                                      forest = unique(forest))
+  }
+
+  if (by.year == FALSE) {
+    g <- names(dat_processed)[-which(names(dat_processed) %in% c("forest", "disturbance", "year"))]
+    dat_processed <- dplyr::summarize(dplyr::group_by_(dat_processed, .dots = lapply(g, function(x) x)),
                                       disturbance = sum(disturbance),
                                       forest = unique(forest))
   }
