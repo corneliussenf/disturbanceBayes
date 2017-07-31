@@ -40,14 +40,18 @@ disturbance_summary <- function(dat,
                                    forest = sum(dominant_landuse == "Forest") > 0)$forest)
     dat_processed <- dplyr::mutate(dat_processed, forest = forest)
   } else {
+
     dat_processed <- dplyr::left_join(dat_processed, grouping.vars, by = "plotid")
     grouping.vars.names <- names(grouping.vars)[-which(names(grouping.vars) == "plotid")]
-    forest <- dplyr::summarize(dplyr::group_by_(dat_processed, .dots = c("plotid", lapply(grouping.vars.names, function(x) x ))),
+
+    dat <- dplyr::left_join(dat, grouping.vars, by = "plotid")
+    forest <- dplyr::summarize(dplyr::group_by_(dat, .dots = c("plotid", lapply(grouping.vars.names, function(x) x ))),
                                    forest = sum(dominant_landuse == "Forest") > 0)
     forest <- dplyr::summarize(dplyr::group_by_(forest, .dots = c(lapply(grouping.vars.names, function(x) x ))),
                                forest = sum(forest))
+
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, .dots = c("image_year", lapply(grouping.vars.names, function(x) x ), "agent")), disturbance = length(agent))
-    dat_processed <- left_join(dat_processed, forest, by = grouping.vars.names)
+    dat_processed <- dplyr::left_join(dat_processed, forest, by = grouping.vars.names)
   }
 
   dat_processed <- dplyr::mutate(dat_processed, year = image_year + 1)
