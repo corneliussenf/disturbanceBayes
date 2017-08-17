@@ -40,36 +40,58 @@ bayes_estimator <- function(formula,
 
   if (family == "binomial") {
     fam <- stats::binomial("logit")
-  } else if (family = "poisson") {
+  } else if (family == "poisson") {
     fam <- stats::poisson("log")
   }
 
-  vars.response <- all.vars(formula)[1:2]
-  vars.predictor <- all.vars(formula)[3:length(all.vars(formula))]
+  if (family == "binomial") {
+    vars.response <- all.vars(formula)[1:2]
+    vars.predictor <- all.vars(formula)[3:length(all.vars(formula))]
+  } else if (family == "poisson") {
+    vars.response <- all.vars(formula)[1]
+    vars.predictor <- all.vars(formula)[2:length(all.vars(formula))]
+  }
 
-  fit_partialpool <- rstanarm::stan_glmer(formula,
+  fit <- rstanarm::stan_glmer(formula,
                                           data = data,
                                           family = fam,
                                           ...)
 
-  alphas <- shift_draws(as.matrix(fit_partialpool))
-  partialpool <- summary_stats(alphas)
-  partialpool <- as.data.frame(partialpool[-nrow(partialpool),])
-  colnames(partialpool) <- c("mean", "sd", "Q025", "Q25", "Q50", "Q75", "Q975")
+  alphas <- shift_draws(as.matrix(fit))
+  estimates <- summary_stats(alphas)
+  estimates <- as.data.frame(estimates[-nrow(estimates),])
+  colnames(estimates) <- c("mean", "sd", "Q025", "Q25", "Q50", "Q75", "Q975")
 
-  names <- substring(rownames(partialpool), 15, (nchar(rownames(partialpool)) - 1))
-
-  for (i in length(vars.predictor)) {
-    partialpool[, vars.predictor[i]] <- unlist(lapply(strsplit(random1, ":"), function(x) x[i+length(vars.predictor)]))
+  posterior <- data.table::melt(alphas[,-ncol(alphas)])
+  if (family == "binomial") {
+    posterior$value <- invlogit(posterior$value)
+  } else if (family == "poisson") {
+    posterior$value <- exp(posterior$value)
   }
 
-  rownames(partialpool) <- NULL
+  names <- substring(rownames(estimates), 15, (nchar(rownames(estimates)) - 1))
 
-  partialpool <- suppressWarnings(dplyr::left_join(partialpool, data[c(vars.predictor, "forest")], by = vars.predictor))
-  partialpool[, which(!(colnames(partialpool) %in% c(vars.predictor, "forest")))] <- partialpool[, which(!(colnames(partialpool) %in% c(vars.predictor, "forest")))] / partialpool[,"forest"]
-  partialpool <- partialpool[, -which(colnames(partialpool) == "forest")]
+  for (i in 1:length(vars.predictor)) {
+    labels <- unlist(lapply(strsplit(names, ":"), function(x) x[i + length(vars.predictor)]))
+    estimates[, vars.predictor[i]] <- labels
+    posterior[, vars.predictor[i]] <- labels
+  }
 
-  return(list(estimate = partialpool,
-              model = fit_partialpool))
+  rownames(estimates) <- NULL
+  posterior <- posterior[, -which(colnames(posterior) == "parameters")]
+
+  if (family == "poisson") {
+    estimates <- suppressWarnings(dplyr::left_join(estimates, data[c(vars.predictor, "forest")], by = vars.predictor))
+    estimates[, which(!(colnames(estimates) %in% c(vars.predictor, "forest")))] <- estimates[, which(!(colnames(estimates) %in% c(vars.predictor, "forest")))] / estimates[,"forest"]
+    estimates <- estimates[, -which(colnames(estimates) == "forest")]
+
+    posterior <- suppressWarnings(dplyr::left_join(posterior, data[c(vars.predictor, "forest")], by = vars.predictor))
+    posterior[, "value"] <- posterior[, "value"] / posterior[,"forest"]
+    posterior <- posterior[, -which(colnames(posterior) == "forest")]
+  }
+
+  return(list(estimate = estimates,
+              posterior = posterior,
+              model = fit))
 
 }
