@@ -13,7 +13,9 @@ disturbance_summary <- function(dat,
                                 grouping.vars = NULL,
                                 sub.agents = FALSE,
                                 change.agents = c("Harvest", "Wind", "Decline", "Hydrology", "Debris", "Other"),
-                                interpreter = NULL) {
+                                agent.regroup = NULL,
+                                interpreter = NULL,
+                                remove.start = TRUE) {
 
   if (!is.null(interpreter)) dat <- dat[dat$interpreter == interpreter, ]
 
@@ -32,7 +34,13 @@ disturbance_summary <- function(dat,
 
   dat_processed <- dplyr::mutate(dat, agent = lead(change_process))
   dat_processed <- dplyr::filter(dat_processed, agent %in% change.agents & dominant_landuse == "Forest")
-  dat_processed <- dplyr::select(dat_processed, -change_process)
+  #dat_processed <- dplyr::select(dat_processed, -change_process)
+
+  dat_processed$agent <- as.factor(as.character(dat_processed$agent))
+
+  dat_processed <- dplyr::left_join(dat_processed, agent.regroup, by = "agent")
+  dat_processed <- dplyr::mutate(dat_processed, "agent" = new)
+  dat_processed <- dplyr::select(dat_processed, -new)
 
   if (is.null(grouping.vars)) {
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, "image_year", "agent"), disturbance = length(agent))
@@ -58,7 +66,8 @@ disturbance_summary <- function(dat,
   dat_processed <- dplyr::ungroup(dat_processed)
   dat_processed <- dplyr::select(dat_processed, -image_year)
   dat_processed$agent <- tolower(dat_processed$agent)
-  dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
+  #dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
+  if (remove.start == TRUE) dat_processed <- dplyr::filter(dat_processed, year > 1985)
 
   if (by.agent == FALSE) {
     g <- names(dat_processed)[-which(names(dat_processed) %in% c("forest", "disturbance", "agent"))]
@@ -73,6 +82,8 @@ disturbance_summary <- function(dat,
                                       disturbance = sum(disturbance),
                                       forest = unique(forest))
   }
+
+  dat_processed <- ungroup(dat_processed)
 
   return(dat_processed)
 }
