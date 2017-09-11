@@ -38,9 +38,11 @@ disturbance_summary <- function(dat,
 
   dat_processed$agent <- as.factor(as.character(dat_processed$agent))
 
-  dat_processed <- dplyr::left_join(dat_processed, agent.regroup, by = "agent")
-  dat_processed <- dplyr::mutate(dat_processed, "agent" = new)
-  dat_processed <- dplyr::select(dat_processed, -new)
+  if(!is.null(agent.regroup)) {
+    dat_processed <- dplyr::left_join(dat_processed, agent.regroup, by = "agent")
+    dat_processed <- dplyr::mutate(dat_processed, "agent" = new)
+    dat_processed <- dplyr::select(dat_processed, -new)
+  }
 
   if (is.null(grouping.vars)) {
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, "image_year", "agent"), disturbance = length(agent))
@@ -83,7 +85,7 @@ disturbance_summary <- function(dat,
                                       forest = unique(forest))
   }
 
-  dat_processed <- ungroup(dat_processed)
+  dat_processed <- dplyr::ungroup(dat_processed)
 
   return(dat_processed)
 }
