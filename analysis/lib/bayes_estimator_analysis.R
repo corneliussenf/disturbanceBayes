@@ -1,20 +1,16 @@
 
 library(raster)
 library(landscapeR)
-library(survey)
 library(rstanarm)
-library(purrr)
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 
 #devtools::install_github("corneliussenf/disturbanceBayes")
 #library(disturbanceBayes)
 
 source("R/bayes_estimator_unpooled.R")
 source("R/bayes_estimator.R")
-#source("R/compare_models.R")
 source("R/disturbance_summary.R")
-source("../mapping/lib/misc/grid_plots_shared_legend.R")
+#source("../mapping/lib/misc/grid_plots_shared_legend.R")
 
 # Create random landscape -------------------------------------------------
 
@@ -86,38 +82,16 @@ dist_rate_true_stratum$disturbance_rate <- dist_rate_true_stratum$disturbance / 
 
 dist_rate_true_stratum_2 <- dist_rate_true_stratum %>%
   group_by(stratum) %>%
-  summarize(disturbance_rate = mean(disturbance_rate))
+  dplyr::summarize(disturbance_rate = mean(disturbance_rate))
 
-# Add second stratum
-
-xy <- as.data.frame(ras, xy = TRUE)
-xy_clust <- kmeans(xy[,1:2], centers = 50)
-xy$stratum <- xy_clust$cluster
-stratum_2 <- rasterFromXYZ(xy[,-3])
-
-landscape_stratum_2 <- na.omit(as.data.frame(stack(landscape, stratum_2)))
-landscape_stratum_2_disturbance <- landscape_stratum_2[landscape_stratum_2[,1] > 1, ]
-
-dist_rate_true_stratum_2 <- data.table::melt(table(landscape_stratum_2_disturbance[,1], landscape_stratum_2_disturbance[,2]))
-names(dist_rate_true_stratum_2) <- c("year", "stratum", "disturbance")
-dist_rate_true_stratum_2$year <- factor(dist_rate_true_stratum_2$year - 1)
-dist_rate_true_stratum_2 <- landscape_stratum_2 %>%
-  group_by(stratum) %>%
-  summarize(forest = sum(layer == 1)) %>%
-  right_join(dist_rate_true_stratum_2, by = "stratum")
-dist_rate_true_stratum_2$stratum <- factor(dist_rate_true_stratum_2$stratum)
-dist_rate_true_stratum_2$disturbance_rate <- dist_rate_true_stratum_2$disturbance / dist_rate_true_stratum_2$forest
-
-# Agent, stratum, and year
+# Agent and stratum
 
 landscape_stratum_agent <- na.omit(as.data.frame(stack(landscape, stratum, agents)))
 landscape_stratum_agent_disturbance <- landscape_stratum_agent[landscape_stratum_agent[,1] > 1, ]
 
-dist_rate_true_stratum_agent <- data.table::melt(table(landscape_stratum_agent_disturbance[,1],
-                                                       landscape_stratum_agent_disturbance[,2],
+dist_rate_true_stratum_agent <- data.table::melt(table(landscape_stratum_agent_disturbance[,2],
                                                        landscape_stratum_agent_disturbance[,3]))
-names(dist_rate_true_stratum_agent) <- c("year", "stratum", "agent", "disturbance")
-dist_rate_true_stratum_agent$year <- factor(dist_rate_true_stratum_agent$year - 1)
+names(dist_rate_true_stratum_agent) <- c("stratum", "agent", "disturbance")
 dist_rate_true_stratum_agent <- landscape_stratum_agent %>%
   group_by(stratum) %>%
   summarize(forest = sum(layer.1 == 1)) %>%
@@ -177,10 +151,10 @@ p_stratum <- levelplot(r, col.regions = c(sample(col_vector, 25), brewer.pal(5, 
 p <- grid.arrange(p_year, p_agent, p_stratum, ncol = 2)
 ggsave("simulated_data.pdf", p, path = "analysis/figures/", width = 8, height = 7.5)
 
-
 # Save maps
 
-save(landscape, agents, stratum, stratum_2, file = "analysis/results/simulation_datasets.RData")
+save(landscape, agents, stratum, file = "analysis/results/simulation_datasets.RData")
+load("analysis/results/simulation_datasets.RData")
 
 # Simulation study analysis -----------------------------------------------
 
@@ -190,7 +164,7 @@ sn <- 4000
 
 ### Function for analyzing models
 
-analyze_models <- function(modellist, true, name) {
+analyze_models <- function(modellist, true, name, sim_dat) {
 
   # Join estimate and true
 
@@ -207,14 +181,22 @@ analyze_models <- function(modellist, true, name) {
                      mse_rel = mean(((.$Q50 * 100) - (.$disturbance_rate * 100))^2) / mean(.$disturbance_rate * 100),
                      rmse = sqrt(mean(((.$Q50 * 100) - (.$disturbance_rate * 100))^2)),
                      r = cor((.$Q50 * 100), (.$disturbance_rate * 100)))) %>%
-    set_names(c("Partially pooled binomial", "Partially pooled poisson", "Un-pooled binomial", "Un-pooled poisson")) %>%
+    set_names(c("Partially pooled", "Un-pooled")) %>%
     bind_rows(.id = "type")
 
   # Plots
 
+  sim_dat <- sim_dat %>%
+    rename(sample_n = disturbance) %>%
+    rename(forest_n = forest)
+
   plotdat <- join %>%
-    set_names(c("Partially pooled binomial", "Partially pooled poisson", "Un-pooled binomial", "Un-pooled poisson")) %>%
-    bind_rows(.id = "type")
+    set_names(c("Partially pooled", "Un-pooled")) %>%
+    bind_rows(.id = "type") %>%
+    left_join(sim_dat) %>%
+    mutate(id = rep(1:nrow(sim_dat), 2)) %>%
+    mutate(difference = (Q50 * 100) - (disturbance_rate * 100),
+           difference_abs = abs(difference))
 
   max_lim <- max(c(plotdat$Q50 * 100, plotdat$disturbance_rate * 100)) * 1.01
 
@@ -228,22 +210,30 @@ analyze_models <- function(modellist, true, name) {
     scale_color_brewer(palette = "Set1") +
     theme(legend.justification = c(1, 0),
           legend.position = c(1, 0),
-          plot.background = element_blank())
+          plot.background = element_blank(),
+          legend.background = element_blank())
 
-  density <- ggplot(plotdat, aes(x = (Q50 * 100) - (disturbance_rate * 100), col = type)) +
-    stat_ecdf() +
-    geom_vline(xintercept = 0) +
-    labs(x = "Estimated minus true disturbance rate", y = "Empirical CDF", col = NULL) +
+  # density <- ggplot(plotdat, aes(x = (Q50 * 100) - (disturbance_rate * 100), col = type)) +
+  #   stat_ecdf() +
+  #   geom_vline(xintercept = 0) +
+  #   labs(x = "Estimated minus true disturbance rate", y = "Empirical CDF", col = NULL) +
+  #   ggthemes::theme_base() +
+  #   scale_color_brewer(palette = "Set1") +
+  #   theme(legend.position = "bottom",
+  #         plot.background = element_blank())
+
+  density <- ggplot(plotdat, aes(x = difference, y = as.integer(reorder(id, difference)))) +
+    geom_point(aes(col = type, shape = type), alpha = 0.75)  +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    labs(x = "Estimation error", y = "Estimate (orderd by estimation error)", col = NULL, shape = NULL) +
     ggthemes::theme_base() +
     scale_color_brewer(palette = "Set1") +
-    theme(legend.position = "bottom",
-          plot.background = element_blank())
-
-  plotdat <- plotdat %>%
-    split(.$type) %>%
-    map(~ mutate(., id = 1:nrow(.))) %>%
-    bind_rows() %>%
-    mutate(difference = (Q50 * 100) - (disturbance_rate * 100))
+    theme(legend.justification = c(1, 0),
+          legend.position = c(1, 0),
+          plot.background = element_blank(),
+          legend.background = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank())
 
   return(list(accuracy = acc,
               plotdat = plotdat,
@@ -253,34 +243,6 @@ analyze_models <- function(modellist, true, name) {
 }
 
 ### Run models
-
-### Estimate disturbance rate per year
-
-sample <- sampleRandom(landscape, size = sn, na.rm = TRUE)
-sample_new <- sampleRandom(landscape, size = sn, na.rm = TRUE)
-
-simulation_dat <- data.frame(disturbance = as.integer(table(sample[sample > 1])),
-                             forest = as.integer(table(sample[sample == 1])))
-simulation_dat$year <- factor(1:30)
-
-partialpooled_binomial <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | year),
-                                          data = simulation_dat,
-                                          family = "binomial")
-
-partialpooled_poisson <- bayes_estimator(formula = disturbance ~ (1 | year),
-                                         data = simulation_dat,
-                                         family = "poisson")
-
-unpooled_binomial <- bayes_estimator_unpooled(formula = cbind(disturbance, forest - disturbance) ~ year,
-                                              data = simulation_dat,
-                                              family = "binomial")
-
-unpooled_poisson <- bayes_estimator_unpooled(formula = disturbance ~ year,
-                                             data = simulation_dat,
-                                             family = "poisson")
-
-models_year <- list(partialpooled_binomial, partialpooled_poisson, unpooled_binomial, unpooled_poisson)
-results_year <- analyze_models(models_year, dist_rate_true, "by_year")
 
 ### Estimate disturbance rate per agent : year
 
@@ -293,58 +255,48 @@ simulation_dat$year <- factor(simulation_dat$year - 1)
 simulation_dat$agent <- factor(simulation_dat$agent)
 simulation_dat$forest <- sum(sample[,1] == 1)
 
-partialpooled_binomial <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | agent : year),
+partialpooled <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | agent : year),
                                           data = simulation_dat,
                                           family = "binomial")
 
-partialpooled_poisson <- bayes_estimator(formula = disturbance ~ (1 | agent : year),
-                                         data = simulation_dat,
-                                         family = "poisson")
-
-unpooled_binomial <- bayes_estimator_unpooled(formula = cbind(disturbance, forest - disturbance) ~ agent : year,
+unpooled <- bayes_estimator_unpooled(formula = cbind(disturbance, forest - disturbance) ~ agent : year,
                                               data = simulation_dat,
                                               family = "binomial")
 
-unpooled_poisson <- bayes_estimator_unpooled(formula = disturbance ~ agent : year,
-                                             data = simulation_dat,
-                                             family = "poisson")
+models_year_agent <- list(partialpooled, unpooled)
+results_year_agent <- analyze_models(modellist = models_year_agent,
+                                     true = dist_rate_true_agent,
+                                     name = "by_year_agent",
+                                     sim_dat = simulation_dat)
 
-models_year_agent <- list(partialpooled_binomial, partialpooled_poisson, unpooled_binomial, unpooled_poisson)
-results_year_agent <- analyze_models(models_year_agent, dist_rate_true_agent, "by_year_agent")
+### Estimate disturbance rate per stratum : agent
 
-### Estimate disturbance rate per stratum : year
-
-sample <- sampleRandom(stack(landscape, stratum), size = sn, na.rm = TRUE)
+sample <- sampleRandom(stack(landscape, agents, stratum), size = sn, na.rm = TRUE)
 sample_disturbance <- sample[sample[,1] > 1, ]
 
-simulation_dat <- data.table::melt(table(sample_disturbance[,1], sample_disturbance[,2]))
-names(simulation_dat) <- c("year", "stratum", "disturbance")
-simulation_dat$year <- factor(simulation_dat$year - 1)
+simulation_dat <- data.table::melt(table(sample_disturbance[,2], sample_disturbance[,3]))
+names(simulation_dat) <- c("agent", "stratum", "disturbance")
 simulation_dat <- sample %>%
   as.data.frame(.) %>%
   group_by(stratum) %>%
-  summarize(forest = sum(layer == 1)) %>%
+  summarize(forest = sum(layer.1 == 1)) %>%
   right_join(simulation_dat, by = "stratum")
 simulation_dat$stratum <- factor(simulation_dat$stratum)
+simulation_dat$agent <- factor(simulation_dat$agent)
 
-partialpooled_binomial <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | stratum : year),
+partialpooled <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | stratum : agent),
                                           data = simulation_dat,
                                           family = "binomial")
 
-partialpooled_poisson <- bayes_estimator(formula = disturbance ~ (1 | stratum : year),
-                                         data = simulation_dat,
-                                         family = "poisson")
-
-unpooled_binomial <- bayes_estimator_unpooled(formula = cbind(disturbance, forest - disturbance) ~ stratum : year,
+unpooled <- bayes_estimator_unpooled(formula = cbind(disturbance, forest - disturbance) ~ stratum : agent,
                                               data = simulation_dat,
                                               family = "binomial")
 
-unpooled_poisson <- bayes_estimator_unpooled(formula = disturbance ~ stratum : year,
-                                             data = simulation_dat,
-                                             family = "poisson")
-
-models_year_stratum <- list(partialpooled_binomial, partialpooled_poisson, unpooled_binomial, unpooled_poisson)
-results_year_stratum <- analyze_models(models_year_stratum, dist_rate_true_stratum, "by_year_stratum")
+models_agent_stratum <- list(partialpooled, unpooled)
+results_year_stratum <- analyze_models(modellist = models_agent_stratum,
+                                       true = dist_rate_true_stratum_agent,
+                                       name = "by_agent_stratum",
+                                       sim_dat = simulation_dat)
 
 ### Estimate disturbance rate per stratum : agent : year
 
@@ -362,23 +314,15 @@ simulation_dat <- sample %>%
 simulation_dat$stratum <- factor(simulation_dat$stratum)
 simulation_dat$agent <- factor(simulation_dat$agent)
 
-partialpooled_binomial <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | stratum : agent : year),
-                                          data = simulation_dat,
-                                          family = "binomial")
+partialpooled <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | stratum : agent : year),
+                                 data = simulation_dat,
+                                 family = "binomial")
 
-partialpooled_poisson <- bayes_estimator(formula = disturbance ~ (1 | stratum : agent : year),
-                                         data = simulation_dat,
-                                         family = "poisson")
+unpooled <- bayes_estimator_unpooled(formula = cbind(disturbance, forest - disturbance) ~ stratum : agent : year,
+                                     data = simulation_dat,
+                                     family = "binomial")
 
-unpooled_binomial <- bayes_estimator_unpooled(formula = cbind(disturbance, forest - disturbance) ~ stratum : agent : year,
-                                              data = simulation_dat,
-                                              family = "binomial")
-
-unpooled_poisson <- bayes_estimator_unpooled(formula = disturbance ~ stratum : agent : year,
-                                             data = simulation_dat,
-                                             family = "poisson")
-
-models_year_agent_stratum <- list(partialpooled_binomial, partialpooled_poisson, unpooled_binomial, unpooled_poisson)
+models_year_agent_stratum <- list(partialpooled, unpooled)
 results_year_agent_stratum <- analyze_models(models_year_agent_stratum, dist_rate_true_stratum_agent, "by_year_stratum_agent")
 
 ### Save everything
