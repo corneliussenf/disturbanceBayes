@@ -7,6 +7,8 @@ library(tidyverse)
 #devtools::install_github("corneliussenf/disturbanceBayes")
 #library(disturbanceBayes)
 
+setwd("../../")
+
 source("R/bayes_estimator_unpooled.R")
 source("R/bayes_estimator.R")
 source("R/disturbance_summary.R")
@@ -391,10 +393,6 @@ list(results_year,
   bind_rows() %>%
   write.csv(., "analysis/results/model_performance_rmse.csv", row.names = FALSE)
 
-# Interpreter error -------------------------------------------------------
-
-
-
 # With TimeSync data ------------------------------------------------------
 
 # Load data
@@ -471,26 +469,26 @@ ggsave("austria_wuchsgebiete.pdf", p, path = "analysis/figures/", width = 3.5, h
 
 disturbance_dat <- disturbance_summary(dat,
                                        by.year = TRUE,
-                                       agent.regroup = regroup,
-                                       by.agent = FALSE,
+                                       by.agent = TRUE,
                                        interpreter = 131)
 
 #disturbance_dat$agent <- ifelse(disturbance_dat$agent == "human", "Human", "Natural")
 
-model2 <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | year),
+model2 <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | year : agent),
                          data = disturbance_dat,
                          family = "binomial")
 
-p <- ggplot(model2$estimate,
-       aes(x = as.integer(year), y = Q50 * 100)) +
+p <- ggplot(filter(model2$estimate, !agent %in% c("hydrology", "other", "debris")),
+       aes(x = as.integer(year), y = Q50 * 100, col = agent, fill = agent)) +
   #geom_point(position = position_dodge(width = 1)) +
   #geom_errorbar(aes(ymin = Q025 * 100, ymax = Q975 * 100),
   #              position = position_dodge(width = 1), width = 0) +
   geom_ribbon(aes(ymin = Q025 * 100, ymax = Q975 * 100), alpha = 0.3, col = NA) +
   geom_line() +
-  labs(x = "Year", y = expression(paste("Disturbance rate [%yr"^"-1","]")), col = NULL, shape = NULL) +
+  labs(x = "Year", y = expression(paste("Disturbance rate [%yr"^"-1","]")),
+       col = NULL, shape = NULL, fill = NULL) +
   ggthemes::theme_base() +
-  scale_color_manual(values = c("grey20", "grey60")) +
+  #scale_color_manual(values = c("grey20", "grey60")) +
   theme(legend.justification = c(0, 1),
         legend.position = c(0, 1),
         legend.background = element_blank(),

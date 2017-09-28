@@ -69,7 +69,7 @@ disturbance_summary <- function(dat,
   dat_processed <- dplyr::select(dat_processed, -image_year)
   dat_processed$agent <- tolower(dat_processed$agent)
   #dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
-  if (remove.start == TRUE) dat_processed <- dplyr::filter(dat_processed, year > 1985)
+  if (remove.start == TRUE) dat_processed <- dplyr::filter(dat_processed, year > 1984)
 
   if (by.agent == FALSE) {
     g <- names(dat_processed)[-which(names(dat_processed) %in% c("forest", "disturbance", "agent"))]

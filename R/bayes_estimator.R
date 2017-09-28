@@ -11,6 +11,7 @@ bayes_estimator <- function(formula,
                             data,
                             family,
                             n_cores = 4,
+                            weights = NULL,
                             ...) {
 
   rstan::rstan_options(auto_write = TRUE)
@@ -53,9 +54,10 @@ bayes_estimator <- function(formula,
   }
 
   fit <- rstanarm::stan_glmer(formula,
-                                          data = data,
-                                          family = fam,
-                                          ...)
+                              data = data,
+                              family = fam,
+                              weights = weights,
+                              ...)
 
   alphas <- shift_draws(as.matrix(fit))
   estimates <- summary_stats(alphas)
