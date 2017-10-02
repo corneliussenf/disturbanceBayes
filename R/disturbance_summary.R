@@ -15,7 +15,7 @@ disturbance_summary <- function(dat,
                                 change.agents = c("Harvest", "Wind", "Decline", "Hydrology", "Debris", "Other"),
                                 agent.regroup = NULL,
                                 interpreter = NULL,
-                                remove.start = TRUE) {
+                                remove.1985.decline = TRUE) {
 
   if (!is.null(interpreter)) dat <- dat[dat$interpreter == interpreter, ]
 
@@ -68,8 +68,7 @@ disturbance_summary <- function(dat,
   dat_processed <- dplyr::ungroup(dat_processed)
   dat_processed <- dplyr::select(dat_processed, -image_year)
   dat_processed$agent <- tolower(dat_processed$agent)
-  #dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
-  if (remove.start == TRUE) dat_processed <- dplyr::filter(dat_processed, year > 1984)
+  if (remove.1985.decline == TRUE) dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
 
   if (by.agent == FALSE) {
     g <- names(dat_processed)[-which(names(dat_processed) %in% c("forest", "disturbance", "agent"))]

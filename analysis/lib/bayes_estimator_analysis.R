@@ -7,8 +7,6 @@ library(tidyverse)
 #devtools::install_github("corneliussenf/disturbanceBayes")
 #library(disturbanceBayes)
 
-setwd("../../")
-
 source("R/bayes_estimator_unpooled.R")
 source("R/bayes_estimator.R")
 source("R/disturbance_summary.R")
@@ -504,27 +502,25 @@ ggsave("austria_year_agent.pdf", p, path = "analysis/figures/", width = 3.5, hei
 disturbance_dat <- disturbance_summary(dat,
                                        by.year = FALSE,
                                        grouping.vars = hoehenstufen,
-                                       agent.regroup = regroup,
-                                       by.agent = FALSE,
+                                       by.agent = TRUE,
                                        interpreter = 131)
 
 #disturbance_dat$agent <- ifelse(disturbance_dat$agent == "human", "Human", "Natural")
 
-model3 <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | SRTMkomple),
+model3 <- bayes_estimator(formula = cbind(disturbance, forest - disturbance) ~ (1 | agent : SRTMkomple),
                           data = disturbance_dat,
                           family = "binomial")
 
 model3$estimate$SRTMkomple <- factor(model3$estimate$SRTMkomple, levels = paste0(seq(0, 3600, 400), "-", seq(400, 4000, 400)))
 
 p <- ggplot(model3$estimate,
-       aes(x = SRTMkomple, y = Q50 * 100 / 32)) +
+       aes(x = SRTMkomple, y = Q50 * 100 / 32, col = agent)) +
   geom_point(position = position_dodge(width = 0.25)) +
   geom_errorbar(aes(ymin = Q025 * 100 / 32, ymax = Q975 * 100 / 32),
                 position = position_dodge(width = 0.25), width = 0) +
   coord_flip() +
   labs(x = "Elevation [m]", y = expression(paste("Disturbance rate [%yr"^"-1","]")), col = NULL, shape = NULL) +
   ggthemes::theme_base() +
-  scale_color_manual(values = c("grey20", "grey60")) +
   theme(legend.justification = c(1, 1),
         legend.position = c(1, 1),
         legend.background = element_blank(),
