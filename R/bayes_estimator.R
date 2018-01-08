@@ -71,12 +71,15 @@ bayes_estimator <- function(formula,
     posterior$value <- exp(posterior$value)
   }
 
-  names <- substring(rownames(estimates), 15, (nchar(rownames(estimates)) - 1))
+  names1 <- substring(rownames(estimates), 15, (nchar(rownames(estimates)) - 1))
+  names2 <- substring(as.character(posterior$parameters), 15, (nchar(as.character(posterior$parameters)) - 1))
 
   for (i in 1:length(vars.predictor)) {
-    labels <- unlist(lapply(strsplit(names, ":"), function(x) x[i + length(vars.predictor)]))
-    estimates[, vars.predictor[i]] <- labels
-    posterior[, vars.predictor[i]] <- labels
+    labels1 <- unlist(lapply(strsplit(names1, ":"), function(x) x[i + length(vars.predictor)]))
+    estimates[, vars.predictor[i]] <- labels1
+
+    labels2 <- unlist(lapply(strsplit(names2, ":"), function(x) x[i + length(vars.predictor)]))
+    posterior[, vars.predictor[i]] <- labels2
   }
 
   rownames(estimates) <- NULL
