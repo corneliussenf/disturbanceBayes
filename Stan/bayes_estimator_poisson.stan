@@ -1,5 +1,5 @@
 
-### Stan model for partial pooling using a hierarchical beta model (partially-pooled binary trials)
+// Stan model for partial pooling using a hierarchical beta model (partially-pooled binary trials)
 
 data {
   int<lower=0> N;           // items
