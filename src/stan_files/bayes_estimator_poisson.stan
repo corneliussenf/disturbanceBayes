@@ -4,7 +4,7 @@
 data {
   int<lower=0> N;           // items
   int<lower=0> K[N];        // initial forested plots
-  int<lower=0> y_obs[N];    // initial disturbance plots
+  int<lower=0> y[N];    // initial disturbance plots
 }
 
 parameters {

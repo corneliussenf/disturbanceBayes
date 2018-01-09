@@ -6,6 +6,7 @@
 #' @param model The model family. Either 'binomial' or 'poisson'.
 #' @return A sumary of the joint posterior distribution for each hierarchical level.
 #' @export
+#' @useDynLib disturbanceBayes .registration = TRUE
 
 bayes_estimator <- function (x, p, index_cols, model) {
 
@@ -19,12 +20,12 @@ bayes_estimator <- function (x, p, index_cols, model) {
   y <- x$disturbance
 
   if (model == "binomial") {
-    fit <- rstan::stan("Stan/bayes_estimator_binomial.stan",
+    fit <- rstan::sampling(stanmodels$bayes_estimator_binomial,
                        data = c("N", "K", "y"),
                        iter = 2000,
                        chains = 4)
   } else if (model == "poisson") {
-    fit <- rstan::stan("Stan/bayes_estimator_poisson.stan",
+    fit <- rstan::sampling(stanmodels$bayes_estimator_poisson,
                        data = c("N", "K", "y"),
                        iter = 2000,
                        chains = 4)

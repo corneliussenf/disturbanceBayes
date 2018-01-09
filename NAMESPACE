@@ -2,3 +2,6 @@
 
 export(bayes_estimator)
 export(disturbance_summary)
+useDynLib(disturbanceBayes,"=")
+useDynLib(disturbanceBayes,"TRUE")
+useDynLib(disturbanceBayes,.registration)
