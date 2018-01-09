@@ -1,7 +1,7 @@
 exportPattern("^[[:alpha:]]+")
-
 export(bayes_estimator)
 export(disturbance_summary)
 export(bayes_estimator_old)
-
+importFrom("methods", "new")
+importFrom("stats", "quantile", "sd")
 useDynLib(disturbanceBayes,.registration = TRUE)

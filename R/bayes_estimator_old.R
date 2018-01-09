@@ -4,6 +4,7 @@
 #' @param data A data.frame containing the data.
 #' @param family The model family. Currently implemented are 'binomial' and 'poisson'.
 #' @param n_cores The number of cores to be used for sampling the posterior.
+#' @param ... Other arguments passed to rstanarm::stan_glmer.
 #' @return A sumary of the joint posterior distribution.
 #' @export
 
@@ -11,7 +12,6 @@ bayes_estimator_old <- function(formula,
                             data,
                             family,
                             n_cores = 4,
-                            weights = NULL,
                             ...) {
 
   rstan::rstan_options(auto_write = TRUE)

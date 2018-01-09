@@ -1,14 +1,14 @@
 Package: disturbanceBayes
 Type: Package
-Title: What the package does (short line)
+Title: TimeSync analysis using Bayesian hierarchical models
 Version: 1.0
 Date: 2018-01-09
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Author: Cornelius Senf
+Maintainer: Cornelius Senf <corneliussenf@gmail.com>
+Description: Estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling.
+License: GPL-3
 Depends: R (>= 3.3.0), Rcpp (>= 0.12.14), methods
-Imports: rstan (>= 2.17.2), rstantools (>= 1.4.0)
+Imports: rstan (>= 2.17.2), rstantools (>= 1.4.0), data.table (>= 1.10.4), dplyr (>= 0.7.4), parallel (>= 3.4.3)
 LinkingTo: StanHeaders (>= 2.17.1), rstan (>= 2.17.2), BH (>= 1.65.0.1), Rcpp (>= 0.12.14), RcppEigen (>= 0.3.3.3.1)
 SystemRequirements: GNU make
 RoxygenNote: 6.0.1
