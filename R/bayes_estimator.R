@@ -6,7 +6,6 @@
 #' @param model The model family. Either 'binomial' or 'poisson'.
 #' @return A sumary of the joint posterior distribution for each hierarchical level.
 #' @export
-#' @useDynLib disturbanceBayes .registration = TRUE
 
 bayes_estimator <- function (x, p, index_cols, model) {
 
