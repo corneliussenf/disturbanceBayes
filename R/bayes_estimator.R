@@ -44,7 +44,7 @@ bayes_estimator <- function (x, p, index_cols, model) {
   rownames(estimates) <- NULL
 
   posterior <- data.table::melt(theta)
-  posterior$year <- rep(x$year, each = length(unique(posterior$iterations)))
+  for (i in index_cols) posterior[, i] <- rep(x[, i], each = length(unique(posterior$iterations)))
   posterior$parameters <- NULL
 
   return(list(estimate = estimates,
