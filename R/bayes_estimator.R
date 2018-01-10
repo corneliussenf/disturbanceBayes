@@ -30,7 +30,7 @@ bayes_estimator <- function (x, disturbance_col, total_col, index_cols, prob = c
                        chains = 4)
   }
 
-  theta <- rstan::as.matrix.stanfit(fit)
+  theta <- as.matrix(fit)
   theta <- theta[, grep("theta*", colnames(theta))]
 
   if (model == "poisson") {
