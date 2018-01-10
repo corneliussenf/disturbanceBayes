@@ -15,8 +15,8 @@ bayes_estimator <- function (x, disturbance_col, total_col, index_cols, prob = c
   options(mc.cores = parallel::detectCores())
 
   N <- dim(x)[1]
-  K <- x[ , total_col]
-  y <- x[, disturbance_col]
+  K <- as.data.frame(x)[ , total_col]
+  y <- as.data.frame(x)[, disturbance_col]
 
   if (model == "binomial") {
     fit <- rstan::sampling(stanmodels$bayes_estimator_binomial,
