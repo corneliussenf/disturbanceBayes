@@ -11,8 +11,6 @@
 
 bayes_estimator <- function (x, disturbance_col, total_col, index_cols, prob = c(0.025, 0.2, 0.5, 0.8, 0.975), model) {
 
-  requireNamespace("rstan")
-
   rstan::rstan_options(auto_write = TRUE)
   options(mc.cores = parallel::detectCores())
 
@@ -32,7 +30,7 @@ bayes_estimator <- function (x, disturbance_col, total_col, index_cols, prob = c
                        chains = 4)
   }
 
-  theta <- as.matrix(fit)
+  theta <- rstan::as.matrix.stanfit(fit)
   theta <- theta[, grep("theta*", colnames(theta))]
 
   if (model == "poisson") {
