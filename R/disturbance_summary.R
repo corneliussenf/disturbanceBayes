@@ -37,7 +37,7 @@ disturbance_summary <- function(dat,
     change.agents <- change.agents[!is.na(change.agents)]
   }
 
-  dat_processed <- dplyr::mutate(dat, agent = lead(change_process))
+  dat_processed <- dplyr::mutate(dat, agent = dplyr::lead(change_process))
   dat_processed <- dplyr::filter(dat_processed, agent %in% change.agents & dominant_landuse == "Forest")
   #dat_processed <- dplyr::select(dat_processed, -change_process)
 

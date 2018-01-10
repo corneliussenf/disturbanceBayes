@@ -12,11 +12,21 @@ disturbance_summary(dat, by.year = TRUE, by.agent = FALSE,
 \arguments{
 \item{dat}{Data exported from TimeSync.}
 
+\item{by.year}{TBD...}
+
 \item{by.agent}{Logical. Whether disturbances should be aggregated by agent.}
 
 \item{grouping.vars}{Data.frame. Additional grouping variables stored in a data frame, where each row corresponds to one plot. The data frame must have a column 'plotid'.}
 
+\item{sub.agents}{TBD...}
+
 \item{change.agents}{Change agents to be considered. Standard is 'Harvest', 'Wind', and 'Decline'.}
+
+\item{agent.regroup}{TBD...}
+
+\item{interpreter}{TBD...}
+
+\item{remove.1985.decline}{TBD...}
 }
 \value{
 A sumary of the disturbances per year (and agents/grouping variables).

@@ -4,7 +4,7 @@
 \alias{bayes_estimator_old}
 \title{Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling}
 \usage{
-bayes_estimator_old(formula, data, family, n_cores = 4, weights = NULL, ...)
+bayes_estimator_old(formula, data, family, n_cores = 4, ...)
 }
 \arguments{
 \item{formula}{A model formula.}
@@ -14,6 +14,8 @@ bayes_estimator_old(formula, data, family, n_cores = 4, weights = NULL, ...)
 \item{family}{The model family. Currently implemented are 'binomial' and 'poisson'.}
 
 \item{n_cores}{The number of cores to be used for sampling the posterior.}
+
+\item{...}{Other arguments passed to rstanarm::stan_glmer.}
 }
 \value{
 A sumary of the joint posterior distribution.

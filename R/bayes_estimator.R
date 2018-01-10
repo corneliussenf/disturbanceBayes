@@ -9,7 +9,7 @@
 
 bayes_estimator <- function (x, p, index_cols, model) {
 
-  require(rstan)
+  requireNamespace(rstan)
 
   rstan::rstan_options(auto_write = TRUE)
   options(mc.cores = parallel::detectCores())

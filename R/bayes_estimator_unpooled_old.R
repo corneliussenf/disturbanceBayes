@@ -4,6 +4,7 @@
 #' @param data A data.frame containing the data.
 #' @param family The model family. Currently implemented are 'binomial' and 'poisson'.
 #' @param n_cores The number of cores to be used for sampling the posterior.
+#' @param ... Other arguments passed to rstanarm::stan_glm.
 #' @return A sumary of the joint posterior distribution.
 
 

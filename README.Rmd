@@ -1,0 +1,21 @@
+---
+title: "disturbanceBayes"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# disturbanceBayes
+
+The disturbanceBayes package was designed for estimating disturbance rates from TimeSync interpreted samples using Bayesian hierarchical modeling. For further information on TimeSync, please see: http://timesync.forestry.oregonstate.edu/.
+
+**How to cite the code**
+
+Please reference this git repository if you use this code.
+
+**License**
+
+This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International][1] license.
+[1]: https://creativecommons.org/licenses/by-sa/4.0/
