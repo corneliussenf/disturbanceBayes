@@ -1,22 +1,24 @@
 #' Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling
 #'
 #' @param x A data frame returned from \code{disturbance_summary()}.
-#' @param p A vector indicating the quantiles used for summarizing the posterior.
-#' @param index_cols A vector indexing the columns storing the hierarchical levels (e.g., years). Either index value or column name.
+#' @param disturbance_col A vector indexing the column storing the number of disturbed plots. Either index value or column name.
+#' @param total_col A vector indexing the column storing the number of forested plots. Either index value or column name.
+#' @param index_cols A vector indexing the columns storing the hierarchical levels (e.g., years, agents). Either index value or column name.
+#' @param prob A vector indicating the quantiles used for summarizing the posterior. Default is 'c(0.025, 0.2, 0.5, 0.8, 0.975)'
 #' @param model The model family. Either 'binomial' or 'poisson'.
 #' @return A sumary of the joint posterior distribution for each hierarchical level.
 #' @export
 
-bayes_estimator <- function (x, p, index_cols, model) {
+bayes_estimator <- function (x, disturbance_col, total_col, index_cols, prob = c(0.025, 0.2, 0.5, 0.8, 0.975), model) {
 
-  requireNamespace(rstan)
+  requireNamespace("rstan")
 
   rstan::rstan_options(auto_write = TRUE)
   options(mc.cores = parallel::detectCores())
 
   N <- dim(x)[1]
-  K <- x$forest
-  y <- x$disturbance
+  K <- x[ , total_col]
+  y <- x[, disturbance_col]
 
   if (model == "binomial") {
     fit <- rstan::sampling(stanmodels$bayes_estimator_binomial,
@@ -37,9 +39,9 @@ bayes_estimator <- function (x, p, index_cols, model) {
     theta <- sweep(theta, 2, K, "/")
   }
 
-  estimates <-t(apply(theta, 2, function(z) {c(mean(z), sd(z), quantile(z, p))}))
+  estimates <-t(apply(theta, 2, function(z) {c(mean(z), sd(z), quantile(z, prob))}))
   estimates <- as.data.frame(estimates)
-  colnames(estimates) <- c("mean", "sd", paste0("Q", p))
+  colnames(estimates) <- c("mean", "sd", paste0("Q", prob))
   for (i in index_cols) estimates[, i] <- x[, i]
   rownames(estimates) <- NULL
 

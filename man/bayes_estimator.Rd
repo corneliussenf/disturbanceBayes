@@ -4,14 +4,19 @@
 \alias{bayes_estimator}
 \title{Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling}
 \usage{
-bayes_estimator(x, p, index_cols, model)
+bayes_estimator(x, disturbance_col, total_col, index_cols, prob = c(0.025,
+  0.2, 0.5, 0.8, 0.975), model)
 }
 \arguments{
 \item{x}{A data frame returned from \code{disturbance_summary()}.}
 
-\item{p}{A vector indicating the quantiles used for summarizing the posterior.}
+\item{disturbance_col}{A vector indexing the column storing the number of disturbed plots. Either index value or column name.}
 
-\item{index_cols}{A vector indexing the columns storing the hierarchical levels (e.g., years). Either index value or column name.}
+\item{total_col}{A vector indexing the column storing the number of forested plots. Either index value or column name.}
+
+\item{index_cols}{A vector indexing the columns storing the hierarchical levels (e.g., years, agents). Either index value or column name.}
+
+\item{prob}{A vector indicating the quantiles used for summarizing the posterior. Default is 'c(0.025, 0.2, 0.5, 0.8, 0.975)'}
 
 \item{model}{The model family. Either 'binomial' or 'poisson'.}
 }
