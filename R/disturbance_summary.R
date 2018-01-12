@@ -15,6 +15,7 @@
 disturbance_summary <- function(dat,
                                 by.year = TRUE,
                                 by.agent = FALSE,
+                                standreplacing = FALSE,
                                 grouping.vars = NULL,
                                 sub.agents = FALSE,
                                 change.agents = c("Harvest", "Wind", "Decline", "Hydrology", "Debris", "Other"),
@@ -37,13 +38,21 @@ disturbance_summary <- function(dat,
     change.agents <- change.agents[!is.na(change.agents)]
   }
 
-  dat_processed <- dplyr::mutate(dat, agent = dplyr::lead(change_process))
+  dat_processed <- dplyr::mutate(dat,
+                                 agent = dplyr::lead(change_process),
+                                 post_disturbance_lc = dplyr::lead(dominant_landcover))
   dat_processed <- dplyr::filter(dat_processed, agent %in% change.agents & dominant_landuse == "Forest")
-  #dat_processed <- dplyr::select(dat_processed, -change_process)
-
   dat_processed$agent <- as.factor(as.character(dat_processed$agent))
+  if (remove.1985.decline == TRUE) dat_processed <- dplyr::filter(dat_processed, !(agent == "Decline" & image_year == 1984))
 
-  if(!is.null(agent.regroup)) {
+  if (standreplacing) {
+    dat_processed$agent <- as.character(dat_processed$agent)
+    dat_processed[which(!is.na(dat_processed$agent) & dat_processed$post_disturbance_lc == "Trees"), "agent"] <- "Non-standreplacing"
+    dat_processed[which(dat_processed$agent != "Stable" & dat_processed$post_disturbance_lc == "Non-tree"), "agent"] <- "Standreplacing"
+    dat_processed$agent <- as.factor(dat_processed$agent)
+  }
+
+  if (!is.null(agent.regroup) & standreplacing) {
     dat_processed <- dplyr::left_join(dat_processed, agent.regroup, by = "agent")
     dat_processed <- dplyr::mutate(dat_processed, "agent" = new)
     dat_processed <- dplyr::select(dat_processed, -new)
@@ -52,7 +61,7 @@ disturbance_summary <- function(dat,
   if (is.null(grouping.vars)) {
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, "image_year", "agent"), disturbance = length(agent))
     forest <- sum(dplyr::summarize(dplyr::group_by(dat, plotid),
-                                   forest = sum(dominant_landuse == "Forest") > 0)$forest)
+                                   forest = sum(dominant_landuse == "Forest", na.rm = TRUE) > 0)$forest)
     dat_processed <- dplyr::mutate(dat_processed, forest = forest)
   } else {
 
@@ -73,9 +82,8 @@ disturbance_summary <- function(dat,
   dat_processed <- dplyr::ungroup(dat_processed)
   dat_processed <- dplyr::select(dat_processed, -image_year)
   dat_processed$agent <- tolower(dat_processed$agent)
-  if (remove.1985.decline == TRUE) dat_processed <- dplyr::filter(dat_processed, !(agent == "decline" & year == 1985))
 
-  if (by.agent == FALSE) {
+  if (by.agent == FALSE & standreplacing == FALSE) {
     g <- names(dat_processed)[-which(names(dat_processed) %in% c("forest", "disturbance", "agent"))]
     dat_processed <- dplyr::summarize(dplyr::group_by_(dat_processed, .dots = lapply(g, function(x) x)),
                                       disturbance = sum(disturbance),
