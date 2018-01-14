@@ -31,8 +31,9 @@ disturbance_summary <- function(dat,
     dat[!is.na(agent_new) & dat$change_process == "Harvest", "change_process"] <- agent_new[!is.na(agent_new) & dat$change_process == "Harvest"]
 
     still_harvest <- dat[dat$change_process == "Harvest", "plotid"]
-    print(paste0("Warning: Detected 'harvests' without sub-agent, which were automatically set to 'clearcut': ", paste(still_harvest, collapse = ", ")))
-    dat[dat$change_process == "Harvest", "change_process"] <- "clearcut"
+    still_harvest <- na.omit(still_harvest)
+    print(paste0("Warning: Detected 'harvests' without sub-agent, which were automatically set to 'clearcut': ", paste(still_harvest[[1]], collapse = ", ")))
+    dat[which(dat$change_process == "Harvest"), "change_process"] <- "clearcut"
 
     change.agents <- c(change.agents, unique(agent_new))
     change.agents <- change.agents[!is.na(change.agents)]
