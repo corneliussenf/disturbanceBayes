@@ -23,6 +23,8 @@ disturbance_summary <- function(dat,
                                 interpreter = NULL,
                                 remove.1985.decline = TRUE) {
 
+  dat <- dplyr::as_tibble(dat)
+
   if (!is.null(interpreter)) dat <- dat[dat$interpreter == interpreter, ]
 
   if (sub.agents) {
@@ -32,7 +34,8 @@ disturbance_summary <- function(dat,
 
     still_harvest <- dat[dat$change_process == "Harvest", "plotid"]
     still_harvest <- na.omit(still_harvest)
-    print(paste0("Warning: Detected 'harvests' without sub-agent, which were automatically set to 'clearcut': ", paste(still_harvest[[1]], collapse = ", ")))
+    if (nrow(still_harvest) > 0) print(paste0("Warning: Detected 'harvests' without sub-agent, which were automatically set to 'clearcut': ",
+                       paste(still_harvest[[1]], collapse = ", ")))
     dat[which(dat$change_process == "Harvest"), "change_process"] <- "clearcut"
 
     change.agents <- c(change.agents, unique(agent_new))
@@ -70,11 +73,11 @@ disturbance_summary <- function(dat,
     grouping.vars.names <- names(grouping.vars)[-which(names(grouping.vars) == "plotid")]
 
     dat <- dplyr::left_join(dat, grouping.vars, by = "plotid")
-    forest <- dplyr::summarize(dplyr::group_by_(dat, .dots = c("plotid", lapply(grouping.vars.names, function(x) x ))),
+    forest <- dplyr::summarize(dplyr::group_by_(dat, .dots = unlist(c("plotid", lapply(grouping.vars.names, function(x) x )))),
                                    forest = sum(dominant_landuse == "Forest") > 0)
-    forest <- dplyr::summarize(dplyr::group_by_(forest, .dots = c(lapply(grouping.vars.names, function(x) x ))),
-                               forest = sum(forest))
-
+    forest <- dplyr::summarize(dplyr::group_by_(forest, .dots = c(lapply(grouping.vars.names, function(x) x ))[[1]]),
+                               forest = sum(forest, na.rm = TRUE))
+    forest <- na.omit(forest)
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, .dots = c("image_year", lapply(grouping.vars.names, function(x) x ), "agent")), disturbance = length(agent))
     dat_processed <- dplyr::left_join(dat_processed, forest, by = grouping.vars.names)
   }
