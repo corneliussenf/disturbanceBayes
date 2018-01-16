@@ -56,7 +56,6 @@ bayes_estimator_old <- function(formula,
   fit <- rstanarm::stan_glmer(formula,
                               data = data,
                               family = fam,
-                              weights = weights,
                               ...)
 
   alphas <- shift_draws(as.matrix(fit))
