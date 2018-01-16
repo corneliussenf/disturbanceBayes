@@ -56,7 +56,7 @@ disturbance_summary <- function(dat,
     dat_processed$agent <- as.factor(dat_processed$agent)
   }
 
-  if (!is.null(agent.regroup) & standreplacing) {
+  if (!is.null(agent.regroup)) {
     dat_processed <- dplyr::left_join(dat_processed, agent.regroup, by = "agent")
     dat_processed <- dplyr::mutate(dat_processed, "agent" = new)
     dat_processed <- dplyr::select(dat_processed, -new)
