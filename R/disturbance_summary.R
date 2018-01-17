@@ -75,7 +75,7 @@ disturbance_summary <- function(dat,
     dat <- dplyr::left_join(dat, grouping.vars, by = "plotid")
     forest <- dplyr::summarize(dplyr::group_by_(dat, .dots = unlist(c("plotid", lapply(grouping.vars.names, function(x) x )))),
                                    forest = sum(dominant_landuse == "Forest") > 0)
-    forest <- dplyr::summarize(dplyr::group_by_(forest, .dots = c(lapply(grouping.vars.names, function(x) x ))[[1]]),
+    forest <- dplyr::summarize(dplyr::group_by_(forest, .dots = unlist(c(lapply(grouping.vars.names, function(x) x )))),
                                forest = sum(forest, na.rm = TRUE))
     forest <- na.omit(forest)
     dat_processed <- dplyr::summarise(dplyr::group_by_(dat_processed, .dots = c("image_year", lapply(grouping.vars.names, function(x) x ), "agent")), disturbance = length(agent))
