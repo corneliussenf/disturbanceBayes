@@ -40,7 +40,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_bayes_estimator_binomial_trend");
-    reader.add_event(41, 41, "end", "model_bayes_estimator_binomial_trend");
+    reader.add_event(42, 42, "end", "model_bayes_estimator_binomial_trend");
     return reader;
 }
 
@@ -148,13 +148,13 @@ public:
             // validate, set parameter ranges
             num_params_r__ = 0U;
             param_ranges_i__.clear();
+            current_statement_begin__ = 12;
+            ++num_params_r__;
             current_statement_begin__ = 13;
             ++num_params_r__;
             current_statement_begin__ = 14;
             ++num_params_r__;
             current_statement_begin__ = 15;
-            ++num_params_r__;
-            current_statement_begin__ = 16;
             validate_non_negative_index("alpha_std", "N", N);
             num_params_r__ += N;
         } catch (const std::exception& e) {
@@ -292,7 +292,7 @@ public:
 
 
             // transformed parameters
-            current_statement_begin__ = 20;
+            current_statement_begin__ = 19;
             validate_non_negative_index("mu", "N", N);
             Eigen::Matrix<T__,Eigen::Dynamic,1>  mu(static_cast<Eigen::VectorXd::Index>(N));
             (void) mu;  // dummy to suppress unused var warning
@@ -301,9 +301,9 @@ public:
             stan::math::fill(mu,DUMMY_VAR__);
 
 
-            current_statement_begin__ = 21;
+            current_statement_begin__ = 20;
             for (int i = 1; i <= N; ++i) {
-                current_statement_begin__ = 22;
+                current_statement_begin__ = 21;
                 stan::math::assign(get_base1_lhs(mu,i,"mu",1), (intercept + (trend * get_base1(time,i,"time",1))));
             }
 
@@ -318,19 +318,19 @@ public:
 
             const char* function__ = "validate transformed params";
             (void) function__;  // dummy to suppress unused var warning
-            current_statement_begin__ = 20;
+            current_statement_begin__ = 19;
 
             // model body
 
-            current_statement_begin__ = 26;
+            current_statement_begin__ = 25;
             lp_accum__.add(normal_log<propto__>(trend, 0, 0.5));
-            current_statement_begin__ = 27;
+            current_statement_begin__ = 26;
             lp_accum__.add(normal_log<propto__>(intercept, 1, 1));
-            current_statement_begin__ = 29;
+            current_statement_begin__ = 27;
             lp_accum__.add(normal_log<propto__>(sigma, 0, 1));
-            current_statement_begin__ = 30;
+            current_statement_begin__ = 28;
             lp_accum__.add(normal_log<propto__>(alpha_std, 0, 1));
-            current_statement_begin__ = 32;
+            current_statement_begin__ = 30;
             lp_accum__.add(binomial_logit_log<propto__>(y, K, add(mu,multiply(sigma,alpha_std))));
 
         } catch (const std::exception& e) {
@@ -364,6 +364,7 @@ public:
         names__.push_back("alpha_std");
         names__.push_back("mu");
         names__.push_back("theta");
+        names__.push_back("trend_pred");
         names__.push_back("log_lik");
     }
 
@@ -376,6 +377,9 @@ public:
         dims__.resize(0);
         dimss__.push_back(dims__);
         dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N);
@@ -425,7 +429,7 @@ public:
         (void) DUMMY_VAR__;  // suppress unused var warning
 
         try {
-            current_statement_begin__ = 20;
+            current_statement_begin__ = 19;
             validate_non_negative_index("mu", "N", N);
             vector_d mu(static_cast<Eigen::VectorXd::Index>(N));
             (void) mu;  // dummy to suppress unused var warning
@@ -434,14 +438,14 @@ public:
             stan::math::fill(mu,DUMMY_VAR__);
 
 
-            current_statement_begin__ = 21;
+            current_statement_begin__ = 20;
             for (int i = 1; i <= N; ++i) {
-                current_statement_begin__ = 22;
+                current_statement_begin__ = 21;
                 stan::math::assign(get_base1_lhs(mu,i,"mu",1), (intercept + (trend * get_base1(time,i,"time",1))));
             }
 
             // validate transformed parameters
-            current_statement_begin__ = 20;
+            current_statement_begin__ = 19;
 
             // write transformed parameters
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
@@ -450,14 +454,21 @@ public:
 
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 36;
+            current_statement_begin__ = 34;
             validate_non_negative_index("theta", "N", N);
             vector_d theta(static_cast<Eigen::VectorXd::Index>(N));
             (void) theta;  // dummy to suppress unused var warning
 
             stan::math::initialize(theta, std::numeric_limits<double>::quiet_NaN());
             stan::math::fill(theta,DUMMY_VAR__);
-            current_statement_begin__ = 37;
+            current_statement_begin__ = 35;
+            validate_non_negative_index("trend_pred", "N", N);
+            vector_d trend_pred(static_cast<Eigen::VectorXd::Index>(N));
+            (void) trend_pred;  // dummy to suppress unused var warning
+
+            stan::math::initialize(trend_pred, std::numeric_limits<double>::quiet_NaN());
+            stan::math::fill(trend_pred,DUMMY_VAR__);
+            current_statement_begin__ = 36;
             validate_non_negative_index("log_lik", "N", N);
             vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
             (void) log_lik;  // dummy to suppress unused var warning
@@ -466,21 +477,30 @@ public:
             stan::math::fill(log_lik,DUMMY_VAR__);
 
 
-            current_statement_begin__ = 38;
+            current_statement_begin__ = 37;
             stan::math::assign(theta, inv_logit(add(mu,multiply(sigma,alpha_std))));
-            current_statement_begin__ = 39;
+            current_statement_begin__ = 38;
             for (int i = 1; i <= N; ++i) {
-                current_statement_begin__ = 40;
+                current_statement_begin__ = 39;
+                stan::math::assign(get_base1_lhs(trend_pred,i,"trend_pred",1), inv_logit((intercept + (trend * get_base1(time,i,"time",1)))));
+            }
+            current_statement_begin__ = 40;
+            for (int i = 1; i <= N; ++i) {
+                current_statement_begin__ = 41;
                 stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), binomial_logit_log(get_base1(y,i,"y",1),get_base1(K,i,"K",1),add(mu,multiply(sigma,alpha_std))));
             }
 
             // validate generated quantities
+            current_statement_begin__ = 34;
+            current_statement_begin__ = 35;
             current_statement_begin__ = 36;
-            current_statement_begin__ = 37;
 
             // write generated quantities
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
             vars__.push_back(theta[k_0__]);
+            }
+            for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(trend_pred[k_0__]);
             }
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
             vars__.push_back(log_lik[k_0__]);
@@ -550,6 +570,11 @@ public:
         }
         for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
             param_name_stream__.str(std::string());
+            param_name_stream__ << "trend_pred" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
             param_name_stream__ << "log_lik" << '.' << k_0__;
             param_names__.push_back(param_name_stream__.str());
         }
@@ -586,6 +611,11 @@ public:
         for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
             param_name_stream__.str(std::string());
             param_name_stream__ << "theta" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "trend_pred" << '.' << k_0__;
             param_names__.push_back(param_name_stream__.str());
         }
         for (int k_0__ = 1; k_0__ <= N; ++k_0__) {

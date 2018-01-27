@@ -69,15 +69,25 @@ bayes_estimator <- function (x,
 
   if (trend) {
 
+    trend_pred <- params[, grep("trend_pred*", colnames(params))]
     trend <- params[, grep("trend*", colnames(params))]
-    intercept <- params[, grep("intercept*", colnames(params))]
-    trend_pred <- invlogit(intercept + trend %o% time)
+
+    trend_estimates <-t(apply(trend_pred, 2, function(z) {c(mean(z), sd(z), quantile(z, prob))}))
+    trend_estimates <- as.data.frame(trend_estimates)
+    colnames(trend_estimates) <- c("mean", "sd", paste0("Q", prob))
+    for (i in index_cols) trend_estimates[, i] <- x[, i]
+    rownames(trend_estimates) <- NULL
+
+    trend_posterior <- data.table::melt(trend_pred)
+    for (i in index_cols) trend_posterior[, i] <- rep(x[, i][[1]], each = length(unique(trend_posterior$iterations)))
+    trend_posterior$parameters <- NULL
 
     return(list(estimate = estimates,
                 posterior = posterior,
                 model = fit,
-                trend = trend,
-                trend_pred = trend_pred))
+                trend_estimate = trend_estimates,
+                trend_posterior = trend_posterior,
+                trend = trend))
 
   } else if (trend) {
 
