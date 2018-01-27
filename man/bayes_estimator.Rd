@@ -5,7 +5,7 @@
 \title{Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling}
 \usage{
 bayes_estimator(x, disturbance_col, total_col, index_cols, prob = c(0.025,
-  0.2, 0.5, 0.8, 0.975), model)
+  0.2, 0.5, 0.8, 0.975), model, trend = FALSE)
 }
 \arguments{
 \item{x}{A data frame returned from \code{disturbance_summary()}.}
@@ -19,9 +19,11 @@ bayes_estimator(x, disturbance_col, total_col, index_cols, prob = c(0.025,
 \item{prob}{A vector indicating the quantiles used for summarizing the posterior. Default is 'c(0.025, 0.2, 0.5, 0.8, 0.975)'}
 
 \item{model}{The model family. Either 'binomial' or 'poisson'.}
+
+\item{trend}{Wehther a trend should be caluclated.}
 }
 \value{
-A sumary of the joint posterior distribution for each hierarchical level.
+A sumary of the joint posterior distribution for each hierarchical level + posterior of parameters (and trend)
 }
 \description{
 Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling

@@ -5,9 +5,10 @@
 \title{Function for summarizing disturbances from a TimeSync sample}
 \usage{
 disturbance_summary(dat, by.year = TRUE, by.agent = FALSE,
-  grouping.vars = NULL, sub.agents = FALSE, change.agents = c("Harvest",
-  "Wind", "Decline", "Hydrology", "Debris", "Other"), agent.regroup = NULL,
-  interpreter = NULL, remove.1985.decline = TRUE)
+  standreplacing = FALSE, grouping.vars = NULL, sub.agents = FALSE,
+  change.agents = c("Harvest", "Wind", "Decline", "Hydrology", "Debris",
+  "Other"), agent.regroup = NULL, interpreter = NULL,
+  remove.1985.decline = TRUE)
 }
 \arguments{
 \item{dat}{Data exported from TimeSync.}
