@@ -28,24 +28,30 @@ bayes_estimator <- function (x,
 
   if (model == "binomial") {
     if (trend) {
-      fit <- sampling(stanmodels$bayes_estimator_binomial,
-                      data = c("N", "K", "y"),
-                      iter = 2000,
-                      chains = 4)
-    } else if (trend) {
       fit <- sampling(stanmodels$bayes_estimator_binomial_trend,
                       data = c("N", "K", "y", "time"),
+                      iter = 2000,
+                      chains = 4)
+
+      # fit <- stan("src/stan_files/bayes_estimator_binomial_trend.stan",
+      #                 data = c("N", "K", "y", "time"),
+      #                 iter = 2000,
+      #                 chains = 4)
+
+    } else if (trend) {
+      fit <- sampling(stanmodels$bayes_estimator_binomial,
+                      data = c("N", "K", "y"),
                       iter = 2000,
                       chains = 4)
     }
   } else if (model == "poisson") {
     if (trend) {
-      fit <- sampling(stanmodels$bayes_estimator_poisson,
-                       data = c("N", "K", "y"),
-                       iter = 2000,
-                       chains = 4)
-    } else if (trend) {
       stop("Not implemented yet, sorry...")
+    } else if (trend) {
+      fit <- sampling(stanmodels$bayes_estimator_poisson,
+                      data = c("N", "K", "y"),
+                      iter = 2000,
+                      chains = 4)
     }
   }
 
@@ -70,7 +76,7 @@ bayes_estimator <- function (x,
   if (trend) {
 
     trend_pred <- params[, grep("trend_pred*", colnames(params))]
-    trend <- params[, grep("trend*", colnames(params))]
+    trend <- params[, grep("trend$", colnames(params))]
 
     trend_estimates <-t(apply(trend_pred, 2, function(z) {c(mean(z), sd(z), quantile(z, prob))}))
     trend_estimates <- as.data.frame(trend_estimates)
