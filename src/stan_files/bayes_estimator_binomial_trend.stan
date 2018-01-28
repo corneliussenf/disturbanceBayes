@@ -22,7 +22,7 @@ transformed parameters {
 }
 
 model {
-  trend ~ normal(0, 0.5);                          // hyperprior
+  trend ~ student_t(5, 0, 0.001);                 // hyperprior
   intercept ~ normal(1, 1);                      // hyperprior
   sigma ~ normal(0, 1);                          // hyperprior
   alpha_std ~ normal(0, 1);                      // prior
