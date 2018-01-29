@@ -29,8 +29,8 @@ bayes_estimator <- function (x,
   if (model == "binomial") {
     if (trend) {
 
-      time <- unique(x[, year_col]) - min(x[, year_col]) + 1
-      length_pred <- length(min(x[, year_col]):max(x[, year_col]))
+      time <- unique(as.integer(x[[year_col]])) - min(x[[year_col]]) + 1
+      length_pred <- length(min(x[[year_col]]):max(x[[year_col]]))
       time_pred <- 1:length_pred
 
       fit <- sampling(stanmodels$bayes_estimator_binomial_trend,
@@ -38,10 +38,10 @@ bayes_estimator <- function (x,
                       iter = 2000,
                       chains = 4)
 
-      # fit <- stan("src/stan_files/bayes_estimator_binomial_trend.stan",
-      #                 data = c("N", "K", "y", "time"),
-      #                 iter = 2000,
-      #                 chains = 4)
+      fit <- stan("src/stan_files/bayes_estimator_binomial_trend.stan",
+                  data = c("N", "K", "y", "time", "length_pred", "time_pred"),
+                  iter = 2000,
+                  chains = 4)
 
     } else if (trend) {
       fit <- sampling(stanmodels$bayes_estimator_binomial,
@@ -83,14 +83,16 @@ bayes_estimator <- function (x,
     trend_pred <- params[, grep("trend_pred*", colnames(params))]
     trend <- params[, grep("trend$", colnames(params))]
 
+    year_pred <- min(x[[year_col]]):(min(x[[year_col]]) + length_pred - 1)
+
     trend_estimates <-t(apply(trend_pred, 2, function(z) {c(mean(z), sd(z), quantile(z, prob))}))
     trend_estimates <- as.data.frame(trend_estimates)
     colnames(trend_estimates) <- c("mean", "sd", paste0("Q", prob))
-    for (i in index_cols) trend_estimates[, i] <- x[, i]
+    trend_estimates$year <- year_pred
     rownames(trend_estimates) <- NULL
 
     trend_posterior <- data.table::melt(trend_pred)
-    for (i in index_cols) trend_posterior[, i] <- rep(x[, i][[1]], each = length(unique(trend_posterior$iterations)))
+    trend_posterior$year <- rep(year_pred, each = length(unique(trend_posterior$iterations)))
     trend_posterior$parameters <- NULL
 
     return(list(estimate = estimates,
