@@ -5,7 +5,7 @@
 \title{Function for estimating disturbance rates from TimeSync samples using Bayesian hierarchical modeling}
 \usage{
 bayes_estimator(x, disturbance_col, total_col, index_cols, prob = c(0.025,
-  0.2, 0.5, 0.8, 0.975), model, trend = FALSE)
+  0.2, 0.5, 0.8, 0.975), model, trend = FALSE, year_col = "year")
 }
 \arguments{
 \item{x}{A data frame returned from \code{disturbance_summary()}.}
