@@ -43,7 +43,7 @@ bayes_estimator <- function (x,
       #             iter = 2000,
       #             chains = 4)
 
-    } else if (trend) {
+    } else {
       fit <- sampling(stanmodels$bayes_estimator_binomial,
                       data = c("N", "K", "y"),
                       iter = 2000,
@@ -52,7 +52,7 @@ bayes_estimator <- function (x,
   } else if (model == "poisson") {
     if (trend) {
       stop("Not implemented yet, sorry...")
-    } else if (trend) {
+    } else {
       fit <- sampling(stanmodels$bayes_estimator_poisson,
                       data = c("N", "K", "y"),
                       iter = 2000,
