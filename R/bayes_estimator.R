@@ -16,7 +16,8 @@ bayes_estimator <- function (x,
                              index_cols,
                              prob = c(0.025, 0.2, 0.5, 0.8, 0.975),
                              model,
-                             trend = FALSE) {
+                             trend = FALSE,
+                             year_col = "year") {
 
   rstan_options(auto_write = TRUE)
   options(mc.cores = parallel::detectCores())
@@ -24,12 +25,16 @@ bayes_estimator <- function (x,
   N <- dim(x)[1]
   K <- as.data.frame(x)[ , total_col]
   y <- as.data.frame(x)[, disturbance_col]
-  time <- 1:N
 
   if (model == "binomial") {
     if (trend) {
+
+      time <- unique(x$year_col) - min(x$year_col) + 1
+      length_pred <- length(min(x$year_col):max(x$year_col))
+      time_pred <- 1:length_pred
+
       fit <- sampling(stanmodels$bayes_estimator_binomial_trend,
-                      data = c("N", "K", "y", "time"),
+                      data = c("N", "K", "y", "time", "length_pred", "time_pred"),
                       iter = 2000,
                       chains = 4)
 
