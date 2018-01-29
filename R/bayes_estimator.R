@@ -29,8 +29,8 @@ bayes_estimator <- function (x,
   if (model == "binomial") {
     if (trend) {
 
-      time <- unique(x$year_col) - min(x$year_col) + 1
-      length_pred <- length(min(x$year_col):max(x$year_col))
+      time <- unique(x[, year_col]) - min(x[, year_col]) + 1
+      length_pred <- length(min(x[, year_col]):max(x[, year_col]))
       time_pred <- 1:length_pred
 
       fit <- sampling(stanmodels$bayes_estimator_binomial_trend,
