@@ -102,7 +102,7 @@ bayes_estimator <- function (x,
                 trend_posterior = trend_posterior,
                 trend = trend))
 
-  } else if (trend) {
+  } else {
 
     return(list(estimate = estimates,
                 posterior = posterior,
