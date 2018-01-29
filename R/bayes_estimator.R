@@ -38,10 +38,10 @@ bayes_estimator <- function (x,
                       iter = 2000,
                       chains = 4)
 
-      fit <- stan("src/stan_files/bayes_estimator_binomial_trend.stan",
-                  data = c("N", "K", "y", "time", "length_pred", "time_pred"),
-                  iter = 2000,
-                  chains = 4)
+      # fit <- stan("src/stan_files/bayes_estimator_binomial_trend.stan",
+      #             data = c("N", "K", "y", "time", "length_pred", "time_pred"),
+      #             iter = 2000,
+      #             chains = 4)
 
     } else if (trend) {
       fit <- sampling(stanmodels$bayes_estimator_binomial,
