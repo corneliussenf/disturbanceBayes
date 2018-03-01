@@ -40,7 +40,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_bayes_estimator_binomial");
-    reader.add_event(43, 43, "end", "model_bayes_estimator_binomial");
+    reader.add_event(44, 44, "end", "model_bayes_estimator_binomial");
     return reader;
 }
 
@@ -383,9 +383,9 @@ public:
 
             current_statement_begin__ = 39;
             stan::math::assign(theta, inv_logit(add(mu,multiply(sigma,alpha_std))));
-            current_statement_begin__ = 40;
+            current_statement_begin__ = 41;
             for (int i = 1; i <= N; ++i) {
-                current_statement_begin__ = 41;
+                current_statement_begin__ = 42;
                 stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), binomial_logit_log(get_base1(y,i,"y",1),get_base1(K,i,"K",1),add(mu,multiply(sigma,alpha_std))));
             }
 

@@ -37,6 +37,7 @@ generated quantities {
   vector[N] log_lik; // pointwise log-likelihood
 
   theta = inv_logit(mu + sigma * alpha_std);
+
   for (i in 1:N)
     log_lik[i] = binomial_logit_lpmf(y[i] | K[i], mu + sigma * alpha_std);
 

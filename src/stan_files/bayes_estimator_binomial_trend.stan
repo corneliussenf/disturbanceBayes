@@ -45,7 +45,7 @@ generated quantities {
     trend_pred[i] = inv_logit(intercept + trend * time_pred[i]);
 
   for (n in 1:N)
-    log_lik[n] = binomial_logit_lpmf(y[n] | K[n], mu[n] + sigma * alpha_std);
+    log_lik[n] = binomial_logit_lpmf(y[n] | K[n], mu + sigma * alpha_std);
 
   for (n in 1:N)
     y_rep[n] = binomial_rng(K[n], theta[n]);

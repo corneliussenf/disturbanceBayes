@@ -528,7 +528,7 @@ public:
             current_statement_begin__ = 47;
             for (int n = 1; n <= N; ++n) {
                 current_statement_begin__ = 48;
-                stan::math::assign(get_base1_lhs(log_lik,n,"log_lik",1), binomial_logit_log(get_base1(y,n,"y",1),get_base1(K,n,"K",1),multiply(pow(get_base1(mu,n,"mu",1),sigma),alpha_std)));
+                stan::math::assign(get_base1_lhs(log_lik,n,"log_lik",1), binomial_logit_log(get_base1(y,n,"y",1),get_base1(K,n,"K",1),add(mu,multiply(sigma,alpha_std))));
             }
             current_statement_begin__ = 50;
             for (int n = 1; n <= N; ++n) {
