@@ -40,7 +40,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_bayes_estimator_binomial_trend");
-    reader.add_event(44, 44, "end", "model_bayes_estimator_binomial_trend");
+    reader.add_event(56, 56, "end", "model_bayes_estimator_binomial_trend");
     return reader;
 }
 
@@ -391,6 +391,8 @@ public:
         names__.push_back("theta");
         names__.push_back("trend_pred");
         names__.push_back("log_lik");
+        names__.push_back("y_rep");
+        names__.push_back("y_pop_rep");
     }
 
 
@@ -414,6 +416,12 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(length_pred);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N);
@@ -500,25 +508,51 @@ public:
 
             stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
             stan::math::fill(log_lik,DUMMY_VAR__);
-
-
             current_statement_begin__ = 39;
-            stan::math::assign(theta, inv_logit(add(mu,multiply(sigma,alpha_std))));
+            validate_non_negative_index("y_rep", "N", N);
+            vector<int> y_rep(N, 0);
+            stan::math::fill(y_rep, std::numeric_limits<int>::min());
             current_statement_begin__ = 40;
+            validate_non_negative_index("y_pop_rep", "N", N);
+            vector<int> y_pop_rep(N, 0);
+            stan::math::fill(y_pop_rep, std::numeric_limits<int>::min());
+
+
+            current_statement_begin__ = 42;
+            stan::math::assign(theta, inv_logit(add(mu,multiply(sigma,alpha_std))));
+            current_statement_begin__ = 44;
             for (int i = 1; i <= length_pred; ++i) {
-                current_statement_begin__ = 41;
+                current_statement_begin__ = 45;
                 stan::math::assign(get_base1_lhs(trend_pred,i,"trend_pred",1), inv_logit((intercept + (trend * get_base1(time_pred,i,"time_pred",1)))));
             }
-            current_statement_begin__ = 42;
-            for (int i = 1; i <= N; ++i) {
-                current_statement_begin__ = 43;
-                stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), binomial_logit_log(get_base1(y,i,"y",1),get_base1(K,i,"K",1),add(mu,multiply(sigma,alpha_std))));
+            current_statement_begin__ = 47;
+            for (int n = 1; n <= N; ++n) {
+                current_statement_begin__ = 48;
+                stan::math::assign(get_base1_lhs(log_lik,n,"log_lik",1), binomial_logit_log(get_base1(y,n,"y",1),get_base1(K,n,"K",1),multiply(pow(get_base1(mu,n,"mu",1),sigma),alpha_std)));
+            }
+            current_statement_begin__ = 50;
+            for (int n = 1; n <= N; ++n) {
+                current_statement_begin__ = 51;
+                stan::math::assign(get_base1_lhs(y_rep,n,"y_rep",1), binomial_rng(get_base1(K,n,"K",1),get_base1(theta,n,"theta",1), base_rng__));
+            }
+            current_statement_begin__ = 53;
+            for (int n = 1; n <= N; ++n) {
+                current_statement_begin__ = 54;
+                stan::math::assign(get_base1_lhs(y_pop_rep,n,"y_pop_rep",1), binomial_rng(get_base1(K,n,"K",1),inv_logit(normal_rng(get_base1(mu,n,"mu",1),sigma, base_rng__)), base_rng__));
             }
 
             // validate generated quantities
             current_statement_begin__ = 36;
             current_statement_begin__ = 37;
             current_statement_begin__ = 38;
+            current_statement_begin__ = 39;
+            for (int k0__ = 0; k0__ < N; ++k0__) {
+                check_greater_or_equal(function__,"y_rep[k0__]",y_rep[k0__],0);
+            }
+            current_statement_begin__ = 40;
+            for (int k0__ = 0; k0__ < N; ++k0__) {
+                check_greater_or_equal(function__,"y_pop_rep[k0__]",y_pop_rep[k0__],0);
+            }
 
             // write generated quantities
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
@@ -529,6 +563,12 @@ public:
             }
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
             vars__.push_back(log_lik[k_0__]);
+            }
+            for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(y_rep[k_0__]);
+            }
+            for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(y_pop_rep[k_0__]);
             }
 
         } catch (const std::exception& e) {
@@ -603,6 +643,16 @@ public:
             param_name_stream__ << "log_lik" << '.' << k_0__;
             param_names__.push_back(param_name_stream__.str());
         }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_rep" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_pop_rep" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
     }
 
 
@@ -646,6 +696,16 @@ public:
         for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
             param_name_stream__.str(std::string());
             param_name_stream__ << "log_lik" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_rep" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_pop_rep" << '.' << k_0__;
             param_names__.push_back(param_name_stream__.str());
         }
     }

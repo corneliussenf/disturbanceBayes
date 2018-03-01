@@ -36,9 +36,21 @@ generated quantities {
   vector[N] theta;  // chance of success
   vector[length_pred] trend_pred;  // trend predictions
   vector[N] log_lik; // pointwise log-likelihood
+  int<lower=0> y_rep[N];      // replications for existing items
+  int<lower=0> y_pop_rep[N];  // replications for simulated items
+
   theta = inv_logit(mu + sigma * alpha_std);
+
   for (i in 1:length_pred)
     trend_pred[i] = inv_logit(intercept + trend * time_pred[i]);
-  for (i in 1:N)
-    log_lik[i] = binomial_logit_lpmf(y[i] | K[i], mu + sigma * alpha_std);
+
+  for (n in 1:N)
+    log_lik[n] = binomial_logit_lpmf(y[n] | K[n], mu[n] + sigma * alpha_std);
+
+  for (n in 1:N)
+    y_rep[n] = binomial_rng(K[n], theta[n]);
+
+  for (n in 1:N)
+    y_pop_rep[n] = binomial_rng(K[n], inv_logit(normal_rng(mu[n], sigma)));
+
 }
