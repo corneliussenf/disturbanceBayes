@@ -78,6 +78,28 @@ bayes_estimator <- function (x,
   for (i in index_cols) posterior[, i] <- rep(x[, i][[1]], each = length(unique(posterior$iterations)))
   posterior$parameters <- NULL
 
+  # Posterior p-values
+
+  posterior_p_values <- summary(fit, c("p_min", "p_max", "p_mean", "p_sd"), probs = c())$summary
+
+  # Posterior distributions for graphical evaluation
+
+  df_post1 <- data.frame(replication = rep("data", length(y)), rate = y / K)
+
+  stanfit <- rstan::extract(fit)
+
+  df_post2 <- vector("list", 25)
+
+  for (n in 1:25) {
+    df_post2[[n]] <- data.frame(list(replication = rep(paste("repl_", n), N),
+                                     rate = stanfit$y_rep[n,] / K))
+  }
+  df_post2 <- do.call("rbind", df_post2)
+
+  posterior_draws <- rbind(df_post1, df_post2)
+
+  # Return everything
+
   if (trend) {
 
     trend_pred <- params[, grep("trend_pred*", colnames(params))]
@@ -100,6 +122,8 @@ bayes_estimator <- function (x,
                 model = fit,
                 trend_estimate = trend_estimates,
                 trend_posterior = trend_posterior,
+                posterior_p_values = posterior_p_values,
+                posterior_draws = posterior_draws,
                 trend = trend))
 
   } else {

@@ -40,7 +40,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_bayes_estimator_binomial");
-    reader.add_event(44, 44, "end", "model_bayes_estimator_binomial");
+    reader.add_event(79, 79, "end", "model_bayes_estimator_binomial");
     return reader;
 }
 
@@ -50,6 +50,10 @@ private:
     int N;
     vector<int> K;
     vector<int> y;
+    double min_y;
+    double max_y;
+    double mean_y;
+    double sd_y;
 public:
     model_bayes_estimator_binomial(stan::io::var_context& context__,
         std::ostream* pstream__ = 0)
@@ -125,18 +129,42 @@ public:
                 check_greater_or_equal(function__,"y[k0__]",y[k0__],0);
             }
             // initialize data variables
+            current_statement_begin__ = 14;
+            min_y = double(0);
+            stan::math::fill(min_y,DUMMY_VAR__);
+            current_statement_begin__ = 15;
+            max_y = double(0);
+            stan::math::fill(max_y,DUMMY_VAR__);
+            current_statement_begin__ = 16;
+            mean_y = double(0);
+            stan::math::fill(mean_y,DUMMY_VAR__);
+            current_statement_begin__ = 17;
+            sd_y = double(0);
+            stan::math::fill(sd_y,DUMMY_VAR__);
 
+            current_statement_begin__ = 19;
+            stan::math::assign(min_y, min(y));
+            current_statement_begin__ = 20;
+            stan::math::assign(max_y, max(y));
+            current_statement_begin__ = 21;
+            stan::math::assign(mean_y, mean(to_vector(y)));
+            current_statement_begin__ = 22;
+            stan::math::assign(sd_y, sd(to_vector(y)));
 
             // validate transformed data
+            current_statement_begin__ = 14;
+            current_statement_begin__ = 15;
+            current_statement_begin__ = 16;
+            current_statement_begin__ = 17;
 
             // validate, set parameter ranges
             num_params_r__ = 0U;
             param_ranges_i__.clear();
-            current_statement_begin__ = 20;
+            current_statement_begin__ = 26;
             ++num_params_r__;
-            current_statement_begin__ = 21;
+            current_statement_begin__ = 27;
             ++num_params_r__;
-            current_statement_begin__ = 22;
+            current_statement_begin__ = 28;
             validate_non_negative_index("alpha_std", "N", N);
             num_params_r__ += N;
         } catch (const std::exception& e) {
@@ -264,13 +292,13 @@ public:
 
             // model body
 
-            current_statement_begin__ = 27;
+            current_statement_begin__ = 33;
             lp_accum__.add(normal_log<propto__>(mu, 1, 1));
-            current_statement_begin__ = 28;
+            current_statement_begin__ = 34;
             lp_accum__.add(normal_log<propto__>(sigma, 0, 1));
-            current_statement_begin__ = 29;
+            current_statement_begin__ = 35;
             lp_accum__.add(normal_log<propto__>(alpha_std, 0, 1));
-            current_statement_begin__ = 31;
+            current_statement_begin__ = 37;
             lp_accum__.add(binomial_logit_log<propto__>(y, K, add(mu,multiply(sigma,alpha_std))));
 
         } catch (const std::exception& e) {
@@ -303,6 +331,16 @@ public:
         names__.push_back("alpha_std");
         names__.push_back("theta");
         names__.push_back("log_lik");
+        names__.push_back("y_rep");
+        names__.push_back("y_pop_rep");
+        names__.push_back("min_y_rep");
+        names__.push_back("max_y_rep");
+        names__.push_back("mean_y_rep");
+        names__.push_back("sd_y_rep");
+        names__.push_back("p_min");
+        names__.push_back("p_max");
+        names__.push_back("p_mean");
+        names__.push_back("p_sd");
     }
 
 
@@ -321,6 +359,28 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(N);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(N);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
         dimss__.push_back(dims__);
     }
 
@@ -365,33 +425,139 @@ public:
 
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 36;
+            current_statement_begin__ = 42;
             validate_non_negative_index("theta", "N", N);
             vector_d theta(static_cast<Eigen::VectorXd::Index>(N));
             (void) theta;  // dummy to suppress unused var warning
 
             stan::math::initialize(theta, std::numeric_limits<double>::quiet_NaN());
             stan::math::fill(theta,DUMMY_VAR__);
-            current_statement_begin__ = 37;
+            current_statement_begin__ = 43;
             validate_non_negative_index("log_lik", "N", N);
             vector_d log_lik(static_cast<Eigen::VectorXd::Index>(N));
             (void) log_lik;  // dummy to suppress unused var warning
 
             stan::math::initialize(log_lik, std::numeric_limits<double>::quiet_NaN());
             stan::math::fill(log_lik,DUMMY_VAR__);
+            current_statement_begin__ = 45;
+            validate_non_negative_index("y_rep", "N", N);
+            vector<int> y_rep(N, 0);
+            stan::math::fill(y_rep, std::numeric_limits<int>::min());
+            current_statement_begin__ = 46;
+            validate_non_negative_index("y_pop_rep", "N", N);
+            vector<int> y_pop_rep(N, 0);
+            stan::math::fill(y_pop_rep, std::numeric_limits<int>::min());
+            current_statement_begin__ = 48;
+            double min_y_rep(0.0);
+            (void) min_y_rep;  // dummy to suppress unused var warning
+
+            stan::math::initialize(min_y_rep, std::numeric_limits<double>::quiet_NaN());
+            stan::math::fill(min_y_rep,DUMMY_VAR__);
+            current_statement_begin__ = 49;
+            double max_y_rep(0.0);
+            (void) max_y_rep;  // dummy to suppress unused var warning
+
+            stan::math::initialize(max_y_rep, std::numeric_limits<double>::quiet_NaN());
+            stan::math::fill(max_y_rep,DUMMY_VAR__);
+            current_statement_begin__ = 50;
+            double mean_y_rep(0.0);
+            (void) mean_y_rep;  // dummy to suppress unused var warning
+
+            stan::math::initialize(mean_y_rep, std::numeric_limits<double>::quiet_NaN());
+            stan::math::fill(mean_y_rep,DUMMY_VAR__);
+            current_statement_begin__ = 51;
+            double sd_y_rep(0.0);
+            (void) sd_y_rep;  // dummy to suppress unused var warning
+
+            stan::math::initialize(sd_y_rep, std::numeric_limits<double>::quiet_NaN());
+            stan::math::fill(sd_y_rep,DUMMY_VAR__);
+            current_statement_begin__ = 53;
+            int p_min(0);
+            (void) p_min;  // dummy to suppress unused var warning
+
+            stan::math::fill(p_min, std::numeric_limits<int>::min());
+            current_statement_begin__ = 54;
+            int p_max(0);
+            (void) p_max;  // dummy to suppress unused var warning
+
+            stan::math::fill(p_max, std::numeric_limits<int>::min());
+            current_statement_begin__ = 55;
+            int p_mean(0);
+            (void) p_mean;  // dummy to suppress unused var warning
+
+            stan::math::fill(p_mean, std::numeric_limits<int>::min());
+            current_statement_begin__ = 56;
+            int p_sd(0);
+            (void) p_sd;  // dummy to suppress unused var warning
+
+            stan::math::fill(p_sd, std::numeric_limits<int>::min());
 
 
-            current_statement_begin__ = 39;
+            current_statement_begin__ = 58;
             stan::math::assign(theta, inv_logit(add(mu,multiply(sigma,alpha_std))));
-            current_statement_begin__ = 41;
-            for (int i = 1; i <= N; ++i) {
-                current_statement_begin__ = 42;
-                stan::math::assign(get_base1_lhs(log_lik,i,"log_lik",1), binomial_logit_log(get_base1(y,i,"y",1),get_base1(K,i,"K",1),add(mu,multiply(sigma,alpha_std))));
+            current_statement_begin__ = 60;
+            for (int n = 1; n <= N; ++n) {
+                current_statement_begin__ = 61;
+                stan::math::assign(get_base1_lhs(log_lik,n,"log_lik",1), binomial_logit_log(get_base1(y,n,"y",1),get_base1(K,n,"K",1),add(mu,multiply(sigma,alpha_std))));
             }
+            current_statement_begin__ = 63;
+            for (int n = 1; n <= N; ++n) {
+                current_statement_begin__ = 64;
+                stan::math::assign(get_base1_lhs(y_rep,n,"y_rep",1), binomial_rng(get_base1(K,n,"K",1),get_base1(theta,n,"theta",1), base_rng__));
+            }
+            current_statement_begin__ = 66;
+            for (int n = 1; n <= N; ++n) {
+                current_statement_begin__ = 67;
+                stan::math::assign(get_base1_lhs(y_pop_rep,n,"y_pop_rep",1), binomial_rng(get_base1(K,n,"K",1),inv_logit(normal_rng(mu,sigma, base_rng__)), base_rng__));
+            }
+            current_statement_begin__ = 69;
+            stan::math::assign(min_y_rep, min(y_rep));
+            current_statement_begin__ = 70;
+            stan::math::assign(max_y_rep, max(y_rep));
+            current_statement_begin__ = 71;
+            stan::math::assign(mean_y_rep, mean(to_vector(y_rep)));
+            current_statement_begin__ = 72;
+            stan::math::assign(sd_y_rep, sd(to_vector(y_rep)));
+            current_statement_begin__ = 74;
+            stan::math::assign(p_min, logical_gte(min_y_rep,min_y));
+            current_statement_begin__ = 75;
+            stan::math::assign(p_max, logical_gte(max_y_rep,max_y));
+            current_statement_begin__ = 76;
+            stan::math::assign(p_mean, logical_gte(mean_y_rep,mean_y));
+            current_statement_begin__ = 77;
+            stan::math::assign(p_sd, logical_gte(sd_y_rep,sd_y));
 
             // validate generated quantities
-            current_statement_begin__ = 36;
-            current_statement_begin__ = 37;
+            current_statement_begin__ = 42;
+            current_statement_begin__ = 43;
+            current_statement_begin__ = 45;
+            for (int k0__ = 0; k0__ < N; ++k0__) {
+                check_greater_or_equal(function__,"y_rep[k0__]",y_rep[k0__],0);
+            }
+            current_statement_begin__ = 46;
+            for (int k0__ = 0; k0__ < N; ++k0__) {
+                check_greater_or_equal(function__,"y_pop_rep[k0__]",y_pop_rep[k0__],0);
+            }
+            current_statement_begin__ = 48;
+            check_greater_or_equal(function__,"min_y_rep",min_y_rep,0);
+            current_statement_begin__ = 49;
+            check_greater_or_equal(function__,"max_y_rep",max_y_rep,0);
+            current_statement_begin__ = 50;
+            check_greater_or_equal(function__,"mean_y_rep",mean_y_rep,0);
+            current_statement_begin__ = 51;
+            check_greater_or_equal(function__,"sd_y_rep",sd_y_rep,0);
+            current_statement_begin__ = 53;
+            check_greater_or_equal(function__,"p_min",p_min,0);
+            check_less_or_equal(function__,"p_min",p_min,1);
+            current_statement_begin__ = 54;
+            check_greater_or_equal(function__,"p_max",p_max,0);
+            check_less_or_equal(function__,"p_max",p_max,1);
+            current_statement_begin__ = 55;
+            check_greater_or_equal(function__,"p_mean",p_mean,0);
+            check_less_or_equal(function__,"p_mean",p_mean,1);
+            current_statement_begin__ = 56;
+            check_greater_or_equal(function__,"p_sd",p_sd,0);
+            check_less_or_equal(function__,"p_sd",p_sd,1);
 
             // write generated quantities
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
@@ -400,6 +566,20 @@ public:
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
             vars__.push_back(log_lik[k_0__]);
             }
+            for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(y_rep[k_0__]);
+            }
+            for (int k_0__ = 0; k_0__ < N; ++k_0__) {
+            vars__.push_back(y_pop_rep[k_0__]);
+            }
+        vars__.push_back(min_y_rep);
+        vars__.push_back(max_y_rep);
+        vars__.push_back(mean_y_rep);
+        vars__.push_back(sd_y_rep);
+        vars__.push_back(p_min);
+        vars__.push_back(p_max);
+        vars__.push_back(p_mean);
+        vars__.push_back(p_sd);
 
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
@@ -460,6 +640,40 @@ public:
             param_name_stream__ << "log_lik" << '.' << k_0__;
             param_names__.push_back(param_name_stream__.str());
         }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_rep" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_pop_rep" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "min_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "max_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "mean_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "sd_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_min";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_max";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_mean";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_sd";
+        param_names__.push_back(param_name_stream__.str());
     }
 
 
@@ -492,6 +706,40 @@ public:
             param_name_stream__ << "log_lik" << '.' << k_0__;
             param_names__.push_back(param_name_stream__.str());
         }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_rep" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "y_pop_rep" << '.' << k_0__;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "min_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "max_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "mean_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "sd_y_rep";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_min";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_max";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_mean";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "p_sd";
+        param_names__.push_back(param_name_stream__.str());
     }
 
 }; // model
