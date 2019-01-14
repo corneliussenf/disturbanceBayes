@@ -3,5 +3,3 @@
 The disturbanceBayes package was designed for estimating disturbance rates from TimeSync interpreted samples using Bayesian hierarchical modeling. For further information on TimeSync, please see following website: http://timesync.forestry.oregonstate.edu/.
 
 **NOTE:** This research code is still under development. Use with caution! Please reference this git repository if you use this code.
-
-[![License: CC BY-NC-SA 4.0](https://licensebuttons.net/l/by-nc-sa/4.0/80x15.png)](https://creativecommons.org/licenses/by-nc-sa/4.0/)

@@ -9,6 +9,11 @@ Description: Estimating disturbance rates from TimeSync samples using Bayesian h
 License: GPL-3
 Depends: R (>= 3.3.0), Rcpp (>= 0.12.14), methods
 Imports: rstan (>= 2.17.2), rstantools (>= 1.4.0), data.table (>= 1.10.4), dplyr (>= 0.7.4), parallel (>= 3.4.3)
-LinkingTo: StanHeaders (>= 2.17.1), rstan (>= 2.17.2), BH (>= 1.65.0.1), Rcpp (>= 0.12.14), RcppEigen (>= 0.3.3.3.1)
+LinkingTo: 
+  StanHeaders (>= 2.17.1), 
+  rstan (>= 2.17.2), 
+  BH (>= 1.65.0.1), 
+  Rcpp (>= 0.12.14), 
+  RcppEigen (>= 0.3.3.3.1)
 SystemRequirements: GNU make
 RoxygenNote: 6.1.1
