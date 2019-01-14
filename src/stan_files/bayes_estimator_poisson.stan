@@ -10,7 +10,7 @@ data {
 parameters {
   real mu;                       // population mean of disturbance log
   real<lower=0> sigma;           // population sd of disturbance log
-  vector[N] beta_std;            // disturbance log-odds
+  vector[N] beta_std;
 }
 
 model {

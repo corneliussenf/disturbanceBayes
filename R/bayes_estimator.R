@@ -7,6 +7,7 @@
 #' @param prob A vector indicating the quantiles used for summarizing the posterior. Default is 'c(0.025, 0.2, 0.5, 0.8, 0.975)'
 #' @param model The model family. Either 'binomial' or 'poisson'.
 #' @param trend Wehther a trend should be caluclated.
+#' @param year_col Column name of year column.
 #' @return A sumary of the joint posterior distribution for each hierarchical level + posterior of parameters (and trend)
 #' @export
 
@@ -33,7 +34,7 @@ bayes_estimator <- function (x,
       length_pred <- length(min(x[[year_col]]):max(x[[year_col]]))
       time_pred <- 1:length_pred
 
-      fit <- sampling(stanmodels$bayes_estimator_binomial_trend,
+      fit <- rstan::sampling(stanmodels$bayes_estimator_binomial_trend,
                       data = c("N", "K", "y", "time", "length_pred", "time_pred"),
                       iter = 2000,
                       chains = 4)
@@ -44,7 +45,7 @@ bayes_estimator <- function (x,
       #             chains = 4)
 
     } else {
-      fit <- sampling(stanmodels$bayes_estimator_binomial,
+      fit <- rstan::sampling(stanmodels$bayes_estimator_binomial,
                       data = c("N", "K", "y"),
                       iter = 2000,
                       chains = 4)
@@ -53,7 +54,7 @@ bayes_estimator <- function (x,
     if (trend) {
       stop("Not implemented yet, sorry...")
     } else {
-      fit <- sampling(stanmodels$bayes_estimator_poisson,
+      fit <- rstan::sampling(stanmodels$bayes_estimator_poisson,
                       data = c("N", "K", "y"),
                       iter = 2000,
                       chains = 4)
@@ -120,17 +121,19 @@ bayes_estimator <- function (x,
     return(list(estimate = estimates,
                 posterior = posterior,
                 model = fit,
-                trend_estimate = trend_estimates,
-                trend_posterior = trend_posterior,
                 posterior_p_values = posterior_p_values,
                 posterior_draws = posterior_draws,
+                trend_estimate = trend_estimates,
+                trend_posterior = trend_posterior,
                 trend = trend))
 
   } else {
 
     return(list(estimate = estimates,
                 posterior = posterior,
-                model = fit))
+                model = fit,
+                posterior_p_values = posterior_p_values,
+                posterior_draws = posterior_draws))
 
   }
 

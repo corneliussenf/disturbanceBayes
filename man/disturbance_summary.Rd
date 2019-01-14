@@ -17,6 +17,8 @@ disturbance_summary(dat, by.year = TRUE, by.agent = FALSE,
 
 \item{by.agent}{Logical. Whether disturbances should be aggregated by agent.}
 
+\item{standreplacing}{Logical. Whether disturbances should be aggregated by stand-replacing/non-stand-replacing}
+
 \item{grouping.vars}{Data.frame. Additional grouping variables stored in a data frame, where each row corresponds to one plot. The data frame must have a column 'plotid'.}
 
 \item{sub.agents}{TBD...}

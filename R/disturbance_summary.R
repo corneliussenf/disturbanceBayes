@@ -3,6 +3,7 @@
 #' @param dat Data exported from TimeSync.
 #' @param by.year TBD...
 #' @param by.agent Logical. Whether disturbances should be aggregated by agent.
+#' @param standreplacing Logical. Whether disturbances should be aggregated by stand-replacing/non-stand-replacing
 #' @param grouping.vars Data.frame. Additional grouping variables stored in a data frame, where each row corresponds to one plot. The data frame must have a column 'plotid'.
 #' @param sub.agents TBD...
 #' @param change.agents Change agents to be considered. Standard is 'Harvest', 'Wind', and 'Decline'.

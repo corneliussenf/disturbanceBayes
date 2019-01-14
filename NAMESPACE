@@ -1,7 +1,6 @@
 exportPattern("^[[:alpha:]]+")
 export(bayes_estimator)
 export(disturbance_summary)
-export(bayes_estimator_old)
 import("Rcpp")
 import("rstan")
 importFrom("methods", "new")
